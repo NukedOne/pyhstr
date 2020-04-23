@@ -2,8 +2,9 @@ import curses
 import os
 
 import more_itertools
+import q
 
-from pyhstr.util import Counter
+from pyhstr.util import EntryCounter, PageCounter
 
 
 PATH = os.path.expanduser("~/.python_history")
@@ -13,7 +14,6 @@ COLORS = {
     "highlighted-green": 3
 }
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, C-f add favorite, ESC quit"
-PYHSTR_STATUS = f"- mode:std (C-/) - match:exact (C-e) - case:sensitive (C-t) - 0/8"
  
 
 class App:
@@ -21,8 +21,8 @@ class App:
         self.stdscr = stdscr
         self.all_entries = self.read_history()
         self.search_string = ""
-        self.page = Counter()
-        self.selected = Counter()
+        self.page = PageCounter()
+        self.selected = EntryCounter(self)
 
     def _addstr(self, y_coord, x_coord, text, color_info):
         """
@@ -49,6 +49,8 @@ class App:
 
     def populate_screen(self, entries):
         self.stdscr.clear()
+        PAGE_STATUS = "page {}/{}".format(self.page.value, len(self.all_entries) - 1)
+        PYHSTR_STATUS = "- mode:std (C-/) - match:exact (C-e) - case:sensitive (C-t) - {}".format(PAGE_STATUS)
         for index, entry in enumerate(entries):
             if index == self.selected.value:
                 self._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-green"]))
@@ -66,6 +68,8 @@ class App:
     def get_number_of_entries_on_the_page(self):
         return len(self.all_entries[self.page.value])
 
+    def get_number_of_pages(self):
+        return len(self.all_entries)
 
 def main(stdscr):
     app = App(stdscr)
