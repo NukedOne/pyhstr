@@ -77,7 +77,7 @@ class App:
     def add_to_favorites(self):
         favorites = self.favorites
         favorites = list(more_itertools.flatten(favorites))
-        favorites.append(self.look_into()[self.page.value][self.selected.value])
+        favorites.append(self._look_into()[self.page.value][self.selected.value])
         self.writer.write(FAVORITES, favorites)
         self.favorites = self.reader.read(FAVORITES)
 
@@ -89,7 +89,7 @@ class App:
         return False
 
     def delete_from_favorites(self):
-        command = self.look_into()[self.page.value][self.selected.value]
+        command = self._look_into()[self.page.value][self.selected.value]
         favorites = self.favorites
         favorites = list(more_itertools.flatten(favorites))
         favorites.remove(command)
@@ -115,12 +115,12 @@ def main(stdscr):
                 app.delete_from_favorites()
 
         elif user_input == 9: # TAB
-            command = app.look_into()[app.page.value][app.selected.value]
+            command = app._look_into()[app.page.value][app.selected.value]
             app.echo(command)
             break
 
         elif user_input == 10: # ENTER ("\n")
-            command = app.look_into()[app.page.value][app.selected.value]
+            command = app._look_into()[app.page.value][app.selected.value]
             app.echo(command)
             app.echo("\n")
             break
