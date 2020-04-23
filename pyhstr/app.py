@@ -6,8 +6,8 @@ import os
 import more_itertools
 import q
 
+from pyhstr.io import Reader, Writer
 from pyhstr.util import EntryCounter, PageCounter
-
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
 FAVORITES = os.path.expanduser("~/.config/pyhstr/favorites")
@@ -28,8 +28,10 @@ class App:
 
     def __init__(self, stdscr):
         self.stdscr = stdscr
-        self.all_entries = self.read(PYTHON_HISTORY)
-        self.favorites = self.read(FAVORITES)
+        self.reader = Reader()
+        self.writer = Writer()
+        self.all_entries = self.reader.read(PYTHON_HISTORY)
+        self.favorites = self.reader.read(FAVORITES)
         self.search_results = []
         self.search_string = ""
         self.search_mode = False
@@ -51,14 +53,6 @@ class App:
         else:
             self.stdscr.addstr(y_coord, x_coord, text, color_info)
 
-    def read(self, path):
-        history = []
-        with open(path, "r") as f:
-            for command in f:
-                command = command.strip()
-                if command not in history:
-                    history.append(command)
-        return list(more_itertools.sliced(history, curses.LINES - 3)) # account for 3 lines at the top
 
     def populate_screen(self, entries):
         self.stdscr.clear()
@@ -126,10 +120,8 @@ class App:
         favorites = self.favorites
         favorites = list(more_itertools.flatten(favorites))
         favorites.append(self.look_into()[self.page.value][self.selected.value])
-        with open(FAVORITES, "w") as f:
-            for fav in favorites:
-                print(fav, file=f)
-        self.favorites = self.read(FAVORITES)
+        self.write(FAVORITES, favorites)
+        self.favorites = self.reader.read(FAVORITES)
 
     def check_if_in_favorites(self):
         command = self.look_into()[self.page.value][self.selected.value]
@@ -143,10 +135,8 @@ class App:
         favorites = self.favorites
         favorites = list(more_itertools.flatten(favorites))
         favorites.remove(command)
-        with open(FAVORITES, "w") as f:
-            for fav in favorites:
-                print(fav, file=f)
-        self.favorites = self.read(FAVORITES)
+        self.write(FAVORITES, favorites)
+        self.favorites = self.reader.read(FAVORITES)
 
 def main(stdscr):
     app = App(stdscr)
@@ -159,7 +149,7 @@ def main(stdscr):
         except curses.error:
             continue
 
-        if user_input == 6: # C-F
+        if user_input == 6: # C-f
             if not app.check_if_in_favorites():
                 app.add_to_favorites()
             else:
