@@ -13,12 +13,6 @@ from pyhstr.util import EntryCounter, PageCounter
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
 FAVORITES = os.path.expanduser("~/.config/pyhstr/favorites")
-COLORS = {
-    "normal": 1,
-    "highlighted-white": 2,
-    "highlighted-green": 3
-}
-PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, C-f add favorite, ESC quit"
  
 
 class App:
@@ -32,9 +26,9 @@ class App:
         self.stdscr = stdscr
         self.reader = Reader()
         self.writer = Writer()
-        self.user_interface = UserInterface(self.stdscr)
-        self.all_entries = self.reader.read(PYTHON_HISTORY)
-        self.favorites = self.reader.read(FAVORITES)
+        self.user_interface = UserInterface(self)
+        self.all_entries = self.user_interface.slice(self.reader.read(PYTHON_HISTORY))
+        self.favorites = self.user_interface.slice(self.reader.read(FAVORITES))
         self.search_results = []
         self.search_string = ""
         self.search_mode = False
@@ -42,24 +36,15 @@ class App:
         self.selected = EntryCounter(self)
         self.mode = self.MODES["std"]
 
-    def populate_screen(self, entries):
-        self.stdscr.clear()
-        PAGE_STATUS = "page {}/{}".format(self.page.value, len(self.look_into()) - 1)
-        PYHSTR_STATUS = "- mode:{} (C-/) - match:exact (C-e) - case:sensitive (C-t) - {}".format(self.mode, PAGE_STATUS)
-        for index, entry in enumerate(entries):
-            if index == self.selected.value:
-                self.user_interface._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-green"]))
-            else:
-                self.user_interface._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["normal"]))
-        self.user_interface._addstr(1, 0, PYHSTR_LABEL, curses.color_pair(COLORS["normal"]))
-        self.user_interface._addstr(2, 0, PYHSTR_STATUS.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-white"]))
-        self.user_interface._addstr(0, 0, f">>> {self.search_string}", curses.color_pair(COLORS["normal"]))
+    def _std_or_fav(self):
+        if self.mode == self.MODES["fav"]:
+            return self.favorites
+        return self.all_entries
 
-    def get_number_of_entries_on_the_page(self):
-        return len(self.look_into()[self.page.value])
-
-    def get_number_of_pages(self):
-        return len(self.look_into())
+    def _look_into(self):
+        if self.search_mode:
+            return self.search_results
+        return self.all_entries if self.mode != self.MODES["fav"] else self.favorites
 
     def echo(self, command):
         command = command.encode("utf-8")
@@ -73,24 +58,14 @@ class App:
             self.search_mode = False
         self.page.value = 0
         self.search_results.clear()
-        for entry in more_itertools.flatten(self.std_or_fav()):
+        for entry in more_itertools.flatten(self._std_or_fav()):
             if self.search_string in entry:
                 self.search_results.append(entry)
         self.search_results = list(more_itertools.sliced(self.search_results, curses.LINES - 3))
         if self.search_results:
-            self.populate_screen(self.search_results[self.page.value])
+            self.user_interface.populate_screen(self.search_results[self.page.value])
         else:
-            self.populate_screen(self.search_results)
-
-    def std_or_fav(self):
-        if self.mode == self.MODES["fav"]:
-            return self.favorites
-        return self.all_entries
-
-    def look_into(self):
-        if self.search_mode:
-            return self.search_results
-        return self.all_entries if self.mode != self.MODES["fav"] else self.favorites
+            self.user_interface.populate_screen(self.search_results)
 
     def toggle_mode(self):
         self.selected.value = 0
@@ -107,7 +82,7 @@ class App:
         self.favorites = self.reader.read(FAVORITES)
 
     def check_if_in_favorites(self):
-        command = self.look_into()[self.page.value][self.selected.value]
+        command = self._look_into()[self.page.value][self.selected.value]
         for cmd in more_itertools.flatten(self.favorites):
             if command == cmd:
                 return True
@@ -125,7 +100,7 @@ class App:
 def main(stdscr):
     app = App(stdscr)
     app.user_interface.init_color_pairs()
-    app.populate_screen(app.all_entries[app.page.value])
+    app.user_interface.populate_screen(app.all_entries[app.page.value])
 
     while True:
         try:
@@ -155,30 +130,32 @@ def main(stdscr):
 
         elif user_input == 31: # C-/
             app.toggle_mode()
-            app.populate_screen(app.std_or_fav()[app.page.value])
+            app.user_interface.populate_screen(app._std_or_fav()[app.page.value])
 
         elif user_input == curses.KEY_UP:
-            boundary = app.get_number_of_entries_on_the_page()
+            boundary = app.user_interface.get_number_of_entries_on_the_page()
             app.selected.dec(boundary)
-            app.populate_screen(app.look_into()[app.page.value])
+            app.user_interface.populate_screen(app._look_into()[app.page.value])
 
         elif user_input == curses.KEY_DOWN:
-            boundary = app.get_number_of_entries_on_the_page()
+            boundary = app.user_interface.get_number_of_entries_on_the_page()
             app.selected.inc(boundary)
-            app.populate_screen(app.look_into()[app.page.value])
+            app.user_interface.populate_screen(app._look_into()[app.page.value])
 
         elif user_input == curses.KEY_NPAGE:
-            boundary = app.get_number_of_pages()
+            boundary = app.user_interface.get_number_of_pages()
             app.page.inc(boundary)
-            app.populate_screen(app.look_into()[app.page.value])
+            app.user_interface.populate_screen(app._look_into()[app.page.value])
 
         elif user_input == curses.KEY_PPAGE:
-            boundary = app.get_number_of_pages()
+            boundary = app.user_interface.get_number_of_pages()
             app.page.dec(boundary)
-            app.populate_screen(app.look_into()[app.page.value])
+            app.user_interface.populate_screen(app._look_into()[app.page.value])
 
         elif user_input == curses.KEY_BACKSPACE:
             app.search_string = app.search_string[:-1]
+            if not app.search_string:
+                app.selected.value = 0
             app.search()
 
         else:

@@ -1,7 +1,3 @@
-import curses
-import more_itertools
-
-
 class Writer:
     def write(self, path, thing):
         with open(path, "w") as f:
@@ -17,4 +13,4 @@ class Reader:
                 command = command.strip()
                 if command not in history:
                     history.append(command)
-        return list(more_itertools.sliced(history, curses.LINES - 3)) # account for 3 lines at the top
+        return history
