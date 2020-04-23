@@ -63,6 +63,9 @@ class App:
         curses.init_pair(2, 0, 15)
         curses.init_pair(3, 15, curses.COLOR_GREEN)
 
+    def get_number_of_entries_on_the_page(self):
+        return len(self.all_entries[self.page.value])
+
 
 def main(stdscr):
     app = App(stdscr)
@@ -77,6 +80,16 @@ def main(stdscr):
 
         if user_input == 27: # ESC
             break
+
+        if user_input == curses.KEY_UP:
+            boundary = app.get_number_of_entries_on_the_page()
+            app.selected.dec(boundary)
+            app.populate_screen(app.all_entries[app.page.value])
+
+        if user_input == curses.KEY_DOWN:
+            boundary = app.get_number_of_entries_on_the_page()
+            app.selected.inc(boundary)
+            app.populate_screen(app.all_entries[app.page.value])
 
 if __name__ == "__main__":
     curses.wrapper(main)
