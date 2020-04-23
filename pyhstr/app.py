@@ -7,7 +7,9 @@ import more_itertools
 import q
 
 from pyhstr.io import Reader, Writer
+from pyhstr.ui import UserInterface
 from pyhstr.util import EntryCounter, PageCounter
+
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
 FAVORITES = os.path.expanduser("~/.config/pyhstr/favorites")
@@ -30,6 +32,7 @@ class App:
         self.stdscr = stdscr
         self.reader = Reader()
         self.writer = Writer()
+        self.user_interface = UserInterface(self.stdscr)
         self.all_entries = self.reader.read(PYTHON_HISTORY)
         self.favorites = self.reader.read(FAVORITES)
         self.search_results = []
@@ -39,38 +42,18 @@ class App:
         self.selected = EntryCounter(self)
         self.mode = self.MODES["std"]
 
-    def _addstr(self, y_coord, x_coord, text, color_info):
-        """
-        Works around curses' limitation of drawing at bottom right corner
-        of the screen, as seen on https://stackoverflow.com/q/36387625
-        """
-        screen_height, screen_width = self.stdscr.getmaxyx()
-        if x_coord + len(text) == screen_width and y_coord == screen_height-1:
-            try:
-                self.stdscr.addstr(y_coord, x_coord, text, color_info)
-            except curses.error:
-                pass
-        else:
-            self.stdscr.addstr(y_coord, x_coord, text, color_info)
-
-
     def populate_screen(self, entries):
         self.stdscr.clear()
         PAGE_STATUS = "page {}/{}".format(self.page.value, len(self.look_into()) - 1)
         PYHSTR_STATUS = "- mode:{} (C-/) - match:exact (C-e) - case:sensitive (C-t) - {}".format(self.mode, PAGE_STATUS)
         for index, entry in enumerate(entries):
             if index == self.selected.value:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-green"]))
+                self.user_interface._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-green"]))
             else:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["normal"]))
-        self._addstr(1, 0, PYHSTR_LABEL, curses.color_pair(COLORS["normal"]))
-        self._addstr(2, 0, PYHSTR_STATUS.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-white"]))
-        self._addstr(0, 0, f">>> {self.search_string}", curses.color_pair(COLORS["normal"]))
-
-    def init_color_pairs(self):
-        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, 0, 15)
-        curses.init_pair(3, 15, curses.COLOR_GREEN)
+                self.user_interface._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["normal"]))
+        self.user_interface._addstr(1, 0, PYHSTR_LABEL, curses.color_pair(COLORS["normal"]))
+        self.user_interface._addstr(2, 0, PYHSTR_STATUS.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-white"]))
+        self.user_interface._addstr(0, 0, f">>> {self.search_string}", curses.color_pair(COLORS["normal"]))
 
     def get_number_of_entries_on_the_page(self):
         return len(self.look_into()[self.page.value])
@@ -120,7 +103,7 @@ class App:
         favorites = self.favorites
         favorites = list(more_itertools.flatten(favorites))
         favorites.append(self.look_into()[self.page.value][self.selected.value])
-        self.write(FAVORITES, favorites)
+        self.writer.write(FAVORITES, favorites)
         self.favorites = self.reader.read(FAVORITES)
 
     def check_if_in_favorites(self):
@@ -135,12 +118,13 @@ class App:
         favorites = self.favorites
         favorites = list(more_itertools.flatten(favorites))
         favorites.remove(command)
-        self.write(FAVORITES, favorites)
+        self.writer.write(FAVORITES, favorites)
         self.favorites = self.reader.read(FAVORITES)
+
 
 def main(stdscr):
     app = App(stdscr)
-    app.init_color_pairs()
+    app.user_interface.init_color_pairs()
     app.populate_screen(app.all_entries[app.page.value])
 
     while True:
