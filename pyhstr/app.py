@@ -1,4 +1,6 @@
 import curses
+import fcntl
+import termios
 import os
 
 import more_itertools
@@ -71,6 +73,12 @@ class App:
     def get_number_of_pages(self):
         return len(self.all_entries)
 
+    def echo(self, command):
+        command = command.encode("utf-8")
+        for byte in command:
+            fcntl.ioctl(0, termios.TIOCSTI, bytes([byte]))
+
+
 def main(stdscr):
     app = App(stdscr)
     app.init_color_pairs()
@@ -82,17 +90,38 @@ def main(stdscr):
         except curses.error:
             continue
 
-        if user_input == 27: # ESC
+        if user_input == 9: # TAB
+            command = app.all_entries[app.page.value][app.selected.value]
+            app.echo(command)
             break
 
-        if user_input == curses.KEY_UP:
+        elif user_input == 10: # ENTER ("\n")
+            command = app.all_entries[app.page.value][app.selected.value]
+            app.echo(command)
+            app.echo("\n")
+            break
+
+        elif user_input == 27: # ESC
+            break
+
+        elif user_input == curses.KEY_UP:
             boundary = app.get_number_of_entries_on_the_page()
             app.selected.dec(boundary)
             app.populate_screen(app.all_entries[app.page.value])
 
-        if user_input == curses.KEY_DOWN:
+        elif user_input == curses.KEY_DOWN:
             boundary = app.get_number_of_entries_on_the_page()
             app.selected.inc(boundary)
+            app.populate_screen(app.all_entries[app.page.value])
+
+        elif user_input == curses.KEY_NPAGE:
+            boundary = app.get_number_of_pages()
+            app.page.inc(boundary)
+            app.populate_screen(app.all_entries[app.page.value])
+
+        elif user_input == curses.KEY_PPAGE:
+            boundary = app.get_number_of_pages()
+            app.page.dec(boundary)
             app.populate_screen(app.all_entries[app.page.value])
 
 if __name__ == "__main__":
