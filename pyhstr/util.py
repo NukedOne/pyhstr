@@ -15,7 +15,8 @@ class EntryCounter:
     def dec(self, boundary):
         if self.value == 0:
             self.app.page.dec(self.app.get_number_of_pages())
-            self.value = len(self.app.all_entries[self.app.page.value]) - 1
+            q/self.app.page.value
+            self.value = len(self.app.look_into()[self.app.page.value]) - 1
         else:
             self.value -= 1
 
