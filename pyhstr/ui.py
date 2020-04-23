@@ -5,7 +5,8 @@ import more_itertools
 COLORS = {
     "normal": 1,
     "highlighted-white": 2,
-    "highlighted-green": 3
+    "highlighted-green": 3,
+    "highlighted-red": 4
 }
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, C-f add favorite, ESC quit"
 
@@ -32,11 +33,12 @@ class UserInterface:
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(2, 0, 15)
         curses.init_pair(3, 15, curses.COLOR_GREEN)
+        curses.init_pair(4, 15, curses.COLOR_RED)
 
     def populate_screen(self, entries):
         self.app.stdscr.clear()
         PAGE_STATUS = "page {}/{}".format(self.app.page.value, len(self.app._look_into()) - 1)
-        PYHSTR_STATUS = "- mode:{} (C-/) - match:exact (C-e) - case:sensitive (C-t) - {}".format(self.app.mode, PAGE_STATUS)
+        PYHSTR_STATUS = "- mode:{} (C-/) - match:exact (C-e) - case:{} (C-t) - {}".format(self.app._get_key(self.app.MODES, self.app.mode), self.app._get_key(self.app.CASES, self.app.case), PAGE_STATUS)
         for index, entry in enumerate(entries):
             if index == self.app.selected.value:
                 self._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-green"]))

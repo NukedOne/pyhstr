@@ -7,7 +7,7 @@ import more_itertools
 import q
 
 from pyhstr.io import Reader, Writer
-from pyhstr.ui import UserInterface
+from pyhstr.ui import UserInterface, COLORS, PYHSTR_LABEL
 from pyhstr.util import EntryCounter, PageCounter
 
 
@@ -20,6 +20,11 @@ class App:
     MODES = {
         "std": 0,
         "fav": 1
+    }
+
+    CASES = {
+        "sensitive": 0,
+        "insensitive": 1
     }
 
     def __init__(self, stdscr):
@@ -35,6 +40,12 @@ class App:
         self.page = PageCounter()
         self.selected = EntryCounter(self)
         self.mode = self.MODES["std"]
+        self.case = self.CASES["insensitive"]
+
+    def _get_key(self, d, value):
+        for k, v in d.items():
+            if v == value:
+                return k
 
     def _std_or_fav(self):
         if self.mode == self.MODES["fav"]:
@@ -56,16 +67,27 @@ class App:
             self.search_mode = True
         else:
             self.search_mode = False
+        self.selected.value = 0
         self.page.value = 0
         self.search_results.clear()
         for entry in more_itertools.flatten(self._std_or_fav()):
-            if self.search_string in entry:
-                self.search_results.append(entry)
+            if self.case == self.CASES["sensitive"]:
+                if self.search_string in entry:
+                    self.search_results.append(entry)
+            else:
+                if self.search_string.lower() in entry.lower():
+                    self.search_results.append(entry)                
         self.search_results = list(more_itertools.sliced(self.search_results, curses.LINES - 3))
         if self.search_results:
             self.user_interface.populate_screen(self.search_results[self.page.value])
         else:
             self.user_interface.populate_screen(self.search_results)
+
+    def toggle_case(self):
+        if self.case == self.CASES["insensitive"]:
+            self.case = self.CASES["sensitive"]
+        else:
+            self.case = self.CASES["insensitive"]
 
     def toggle_mode(self):
         self.selected.value = 0
@@ -96,6 +118,20 @@ class App:
         self.writer.write(FAVORITES, favorites)
         self.favorites = self.reader.read(FAVORITES)
 
+    def delete_from_history(self, command):
+        prompt = f"Do you want to delete all occurences of {command}? y/n"
+        self.user_interface._addstr(1, 0, "".ljust(curses.COLS), curses.color_pair(COLORS["normal"]))
+        self.user_interface._addstr(1, 0, prompt, curses.color_pair(COLORS["highlighted-red"]))
+        answer = self.stdscr.getch()
+        if answer == ord("y"):
+            for page in self.all_entries:
+                for cmd in page:
+                    if cmd == command:
+                        page.remove(cmd)
+            self.writer.write(PYTHON_HISTORY, more_itertools.flatten(self.all_entries))
+            self.user_interface.populate_screen(self._look_into()[self.page.value])
+        elif answer == ord("n"):
+            self.user_interface.populate_screen(self._look_into()[self.page.value])
 
 def main(stdscr):
     app = App(stdscr)
@@ -107,6 +143,9 @@ def main(stdscr):
             user_input = app.stdscr.getch()
         except curses.error:
             continue
+
+        if user_input == 5: # C-e
+            pass
 
         if user_input == 6: # C-f
             if not app.check_if_in_favorites():
@@ -124,6 +163,10 @@ def main(stdscr):
             app.echo(command)
             app.echo("\n")
             break
+
+        elif user_input == 20: # C-t
+            app.toggle_case()
+            app.user_interface.populate_screen(app._std_or_fav()[app.page.value])
 
         elif user_input == 27: # ESC
             break
@@ -157,6 +200,10 @@ def main(stdscr):
             if not app.search_string:
                 app.selected.value = 0
             app.search()
+
+        elif user_input == curses.KEY_DC: # del
+            command = app._look_into()[app.page.value][app.selected.value]
+            app.delete_from_history(command)
 
         else:
             app.search_string += chr(user_input)
