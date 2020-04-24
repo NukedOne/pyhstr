@@ -55,9 +55,11 @@ class App:
             self.search_mode = True
         else:
             self.search_mode = False
+
         self.selected.value = 0
         self.page.value = 0
         self.search_results.clear()
+        
         for entry in more_itertools.flatten(self.all_entries):
             if self.case == self.CASES["sensitive"]:
                 if self.search_string in entry:
@@ -65,8 +67,9 @@ class App:
             else:
                 if self.search_string.lower() in entry.lower():
                     self.search_results.append(entry)                
+        
         self.search_results = list(more_itertools.sliced(self.search_results, curses.LINES - 3))
-        q/self.search_results
+        
         if self.search_results:
             self.user_interface.populate_screen(self.search_results[self.page.value])
         else:
@@ -83,6 +86,7 @@ class App:
         self.user_interface._addstr(1, 0, "".ljust(curses.COLS), curses.color_pair(COLORS["normal"]))
         self.user_interface._addstr(1, 0, prompt, curses.color_pair(COLORS["highlighted-red"]))
         answer = self.stdscr.getch()
+        
         if answer == ord("y"):
             for page in self.all_entries:
                 for cmd in page:
@@ -90,6 +94,7 @@ class App:
                         page.remove(cmd)
             self.writer.write(PYTHON_HISTORY, more_itertools.flatten(self.all_entries))
             self.user_interface.populate_screen(self._look_into()[self.page.value])
+        
         elif answer == ord("n"):
             self.user_interface.populate_screen(self._look_into()[self.page.value])
 
