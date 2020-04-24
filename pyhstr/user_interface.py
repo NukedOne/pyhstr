@@ -1,8 +1,4 @@
 import curses
-import collections
-
-import more_itertools
-import q
 
 
 COLORS = {
@@ -34,7 +30,8 @@ class UserInterface:
         else:
             self.app.stdscr.addstr(y_coord, x_coord, text, color_info)
 
-    def init_color_pairs(self):
+    @staticmethod
+    def init_color_pairs():
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(2, 0, 15)
         curses.init_pair(3, 15, curses.COLOR_GREEN)
@@ -47,9 +44,9 @@ class UserInterface:
     def populate_screen(self, entries):
         self.app.stdscr.clear()
         pyhstr_status = PYHSTR_STATUS.format(
-            self.app._get_key(self.app.CASES, self.app.case),
+            self.app.get_key(self.app.CASES, self.app.case),
             self.app.page.value,
-            len(self.app._look_into()) - 1
+            len(self.app.searched_or_all()) - 1
         )
 
         for index, entry in enumerate(entries):
@@ -63,13 +60,10 @@ class UserInterface:
         self._addstr(0, 0, f">>> {self.app.search_string}", COLORS["normal"])
 
     def get_number_of_entries_on_the_page(self):
-        return len(self.app._look_into()[self.app.page.value])
+        return len(self.app.searched_or_all()[self.app.page.value])
 
     def get_number_of_pages(self):
-        return len(self.app._look_into())
-
-    def slice(self, thing):
-        return list(more_itertools.sliced(thing, curses.LINES - 3)) # account for 3 lines at the top
+        return len(self.app.searched_or_all())
 
     def prompt_for_deletion(self, command):
         prompt = f"Do you want to delete all occurences of {command}? y/n"
