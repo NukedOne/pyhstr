@@ -1,3 +1,6 @@
+import collections
+
+
 class Writer:
     def write(self, path, thing):
         with open(path, "w") as f:
@@ -10,7 +13,9 @@ class Reader:
         history = []
         with open(path, "r") as f:
             for command in f:
-                command = command.strip()
-                if command not in history:
-                    history.append(command)
-        return history
+                history.append(command.strip())
+        return [
+            x[0] for x in sorted(
+                collections.Counter(history).items(), key=lambda y: -y[1]
+            )
+        ]

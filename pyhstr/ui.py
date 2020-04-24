@@ -1,14 +1,19 @@
 import curses
+import collections
+
 import more_itertools
+import q
 
 
 COLORS = {
-    "normal": 1,
-    "highlighted-white": 2,
-    "highlighted-green": 3,
-    "highlighted-red": 4
+    # yet to be initialized
+    "normal": None,
+    "highlighted-white": None,
+    "highlighted-green": None,
+    "highlighted-red": None,
 }
-PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, C-f add favorite, ESC quit"
+PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit"
+PYHSTR_STATUS = " - case:{} (C-t) - page {}/{}"
 
 
 class UserInterface:
@@ -34,19 +39,28 @@ class UserInterface:
         curses.init_pair(2, 0, 15)
         curses.init_pair(3, 15, curses.COLOR_GREEN)
         curses.init_pair(4, 15, curses.COLOR_RED)
+        COLORS["normal"] = curses.color_pair(1)
+        COLORS["highlighted-white"] = curses.color_pair(2)
+        COLORS["highlighted-green"] = curses.color_pair(3)
+        COLORS["highlighted-red"] = curses.color_pair(4)
 
     def populate_screen(self, entries):
         self.app.stdscr.clear()
-        PAGE_STATUS = "page {}/{}".format(self.app.page.value, len(self.app._look_into()) - 1)
-        PYHSTR_STATUS = "- mode:{} (C-/) - match:exact (C-e) - case:{} (C-t) - {}".format(self.app._get_key(self.app.MODES, self.app.mode), self.app._get_key(self.app.CASES, self.app.case), PAGE_STATUS)
+        pyhstr_status = PYHSTR_STATUS.format(
+            self.app._get_key(self.app.CASES, self.app.case),
+            self.app.page.value,
+            len(self.app._look_into()) - 1
+        )
+
         for index, entry in enumerate(entries):
             if index == self.app.selected.value:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-green"]))
+                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["highlighted-green"])
             else:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), curses.color_pair(COLORS["normal"]))
-        self._addstr(1, 0, PYHSTR_LABEL, curses.color_pair(COLORS["normal"]))
-        self._addstr(2, 0, PYHSTR_STATUS.ljust(curses.COLS), curses.color_pair(COLORS["highlighted-white"]))
-        self._addstr(0, 0, f">>> {self.app.search_string}", curses.color_pair(COLORS["normal"]))
+                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+
+        self._addstr(1, 0, PYHSTR_LABEL, COLORS["normal"])
+        self._addstr(2, 0, pyhstr_status.ljust(curses.COLS), COLORS["highlighted-white"])
+        self._addstr(0, 0, f">>> {self.app.search_string}", COLORS["normal"])
 
     def get_number_of_entries_on_the_page(self):
         return len(self.app._look_into()[self.app.page.value])
