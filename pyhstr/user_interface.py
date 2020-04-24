@@ -70,3 +70,8 @@ class UserInterface:
 
     def slice(self, thing):
         return list(more_itertools.sliced(thing, curses.LINES - 3)) # account for 3 lines at the top
+
+    def prompt_for_deletion(self, command):
+        prompt = f"Do you want to delete all occurences of {command}? y/n"
+        self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
+        self._addstr(1, 0, prompt, COLORS["highlighted-red"])

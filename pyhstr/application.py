@@ -1,3 +1,4 @@
+import collections
 import curses
 import fcntl
 import termios
@@ -6,9 +7,8 @@ import os
 import more_itertools
 import q
 
-from pyhstr.io import Reader, Writer
-from pyhstr.ui import UserInterface, COLORS, PYHSTR_LABEL
-from pyhstr.util import EntryCounter, PageCounter
+from pyhstr.user_interface import UserInterface, COLORS, PYHSTR_LABEL
+from pyhstr.utilities import EntryCounter, PageCounter
 
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
@@ -24,10 +24,8 @@ class App:
 
     def __init__(self, stdscr):
         self.stdscr = stdscr
-        self.reader = Reader()
-        self.writer = Writer()
         self.user_interface = UserInterface(self)
-        self.all_entries = self.user_interface.slice(self.reader.read(PYTHON_HISTORY))
+        self.all_entries = self.slice(self.read(PYTHON_HISTORY))
         self.search_results = []
         self.search_string = ""
         self.search_mode = False
@@ -50,6 +48,22 @@ class App:
         for byte in command:
             fcntl.ioctl(0, termios.TIOCSTI, bytes([byte]))
 
+    def write(self, path, thing):
+        with open(path, "w") as f:
+            for thingy in thing:
+                print(thingy, file=f)
+ 
+    def read(self, path):
+        history = []
+        with open(path, "r") as f:
+            for command in f:
+                history.append(command.strip())
+        return [
+            x[0] for x in sorted(
+                collections.Counter(history).items(), key=lambda y: -y[1]
+            )
+        ]
+
     def search(self):
         if self.search_string:
             self.search_mode = True
@@ -68,7 +82,7 @@ class App:
                 if self.search_string.lower() in entry.lower():
                     self.search_results.append(entry)                
         
-        self.search_results = list(more_itertools.sliced(self.search_results, curses.LINES - 3))
+        self.search_results = self.slice(self.search_results)
         
         if self.search_results:
             self.user_interface.populate_screen(self.search_results[self.page.value])
@@ -82,9 +96,7 @@ class App:
             self.case = self.CASES["insensitive"]
 
     def delete_from_history(self, command):
-        prompt = f"Do you want to delete all occurences of {command}? y/n"
-        self.user_interface._addstr(1, 0, "".ljust(curses.COLS), curses.color_pair(COLORS["normal"]))
-        self.user_interface._addstr(1, 0, prompt, curses.color_pair(COLORS["highlighted-red"]))
+        self.user_interface.prompt_for_deletion(command)
         answer = self.stdscr.getch()
         
         if answer == ord("y"):
@@ -92,11 +104,16 @@ class App:
                 for cmd in page:
                     if cmd == command:
                         page.remove(cmd)
-            self.writer.write(PYTHON_HISTORY, more_itertools.flatten(self.all_entries))
+            self.write(PYTHON_HISTORY, more_itertools.flatten(self.all_entries))
+            self.all_entries = self.slice(self.read(PYTHON_HISTORY))
             self.user_interface.populate_screen(self._look_into()[self.page.value])
         
         elif answer == ord("n"):
             self.user_interface.populate_screen(self._look_into()[self.page.value])
+
+    def slice(self, thing):
+        return list(more_itertools.sliced(thing, curses.LINES - 3)) # account for 3 lines at the top
+
 
 def main(stdscr):
     app = App(stdscr)
