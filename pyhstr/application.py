@@ -23,7 +23,7 @@ class App:
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
-        self.all_entries = self.slice(self.read(PYTHON_HISTORY))
+        self.all_entries = self.slice(self.sort(self.read(PYTHON_HISTORY)))
         self.search_results = []
         self.search_string = ""
         self.search_mode = False
@@ -43,11 +43,7 @@ class App:
         with open(path, "r") as f:
             for command in f:
                 history.append(command.strip())
-        return [
-            x[0] for x in sorted(
-                collections.Counter(history).items(), key=lambda y: -y[1]
-            )
-        ]
+        return history
 
     @staticmethod
     def echo(command):
@@ -110,6 +106,14 @@ class App:
     @staticmethod
     def slice(thing):
         return list(more_itertools.sliced(thing, curses.LINES - 3)) # account for 3 lines at the top
+
+    @staticmethod
+    def sort(thing):
+        return [
+            x[0] for x in sorted(
+                collections.Counter(thing).items(), key=lambda y: -y[1]
+            )
+        ]
 
     @staticmethod
     def get_key(d, value):
