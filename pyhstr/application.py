@@ -1,13 +1,12 @@
-import collections
 import curses
-import fcntl
-import termios
 import os
 
 import more_itertools
 
 from pyhstr.user_interface import UserInterface
-from pyhstr.utilities import EntryCounter, PageCounter
+from pyhstr.utilities import (
+    echo, EntryCounter, PageCounter, read, slice, sort, write
+)
 
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
@@ -15,41 +14,16 @@ PYTHON_HISTORY = os.path.expanduser("~/.python_history")
 
 class App:
 
-    CASES = {
-        "sensitive": 0,
-        "insensitive": 1
-    }
-
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
-        self.all_entries = self.slice(self.sort(self.read(PYTHON_HISTORY)))
+        self.all_entries = slice(sort(read(PYTHON_HISTORY)), curses.LINES - 3)
         self.search_results = []
         self.search_string = ""
         self.search_mode = False
         self.page = PageCounter()
         self.selected = EntryCounter(self)
-        self.case = self.CASES["insensitive"]
-
-    @staticmethod
-    def write(path, thing):
-        with open(path, "w") as f:
-            for thingy in thing:
-                print(thingy, file=f)
-
-    @staticmethod
-    def read(path):
-        history = []
-        with open(path, "r") as f:
-            for command in f:
-                history.append(command.strip())
-        return history
-
-    @staticmethod
-    def echo(command):
-        command = command.encode("utf-8")
-        for byte in command:
-            fcntl.ioctl(0, termios.TIOCSTI, bytes([byte]))
+        self.case_sensitivity = False
 
     def search(self):
         if self.search_string:
@@ -69,7 +43,7 @@ class App:
                 if self.search_string.lower() in entry.lower():
                     self.search_results.append(entry)
 
-        self.search_results = self.slice(self.search_results)
+        self.search_results = slice(self.search_results, curses.LINES - 3)
 
         if self.search_results:
             self.user_interface.populate_screen(self.search_results[self.page.value])
@@ -85,41 +59,20 @@ class App:
                 for cmd in page:
                     if cmd == command:
                         page.remove(cmd)
-            self.write(PYTHON_HISTORY, more_itertools.flatten(self.all_entries))
-            self.all_entries = self.slice(self.read(PYTHON_HISTORY))
+            write(PYTHON_HISTORY, more_itertools.flatten(self.all_entries))
+            self.all_entries = slice(read(PYTHON_HISTORY), curses.LINES - 3)
             self.user_interface.populate_screen(self.searched_or_all()[self.page.value])
 
         elif answer == ord("n"):
             self.user_interface.populate_screen(self.searched_or_all()[self.page.value])
 
     def toggle_case(self):
-        if self.case == self.CASES["insensitive"]:
-            self.case = self.CASES["sensitive"]
-        else:
-            self.case = self.CASES["insensitive"]
+        self.case_sensitivity = not self.case_sensitivity
 
     def searched_or_all(self):
         if self.search_mode:
             return self.search_results
         return self.all_entries
-
-    @staticmethod
-    def slice(thing):
-        return list(more_itertools.sliced(thing, curses.LINES - 3)) # account for 3 lines at the top
-
-    @staticmethod
-    def sort(thing):
-        return [
-            x[0] for x in sorted(
-                collections.Counter(thing).items(), key=lambda y: -y[1]
-            )
-        ]
-
-    @staticmethod
-    def get_key(d, value):
-        for k, v in d.items():
-            if v == value:
-                return k
 
 
 def main(stdscr):
@@ -135,13 +88,13 @@ def main(stdscr):
 
         if user_input == 9: # TAB
             command = app.searched_or_all()[app.page.value][app.selected.value]
-            app.echo(command)
+            echo(command)
             break
 
         elif user_input == 10: # ENTER ("\n")
             command = app.searched_or_all()[app.page.value][app.selected.value]
-            app.echo(command)
-            app.echo("\n")
+            echo(command)
+            echo("\n")
             break
 
         elif user_input == 20: # C-t

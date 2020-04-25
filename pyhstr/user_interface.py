@@ -44,9 +44,9 @@ class UserInterface:
     def populate_screen(self, entries):
         self.app.stdscr.clear()
         pyhstr_status = PYHSTR_STATUS.format(
-            self.app.get_key(self.app.CASES, self.app.case),
-            self.app.page.value,
-            len(self.app.searched_or_all()) - 1
+            "sensitive" if self.app.case_sensitivity else "insensitive",
+            self.app.page.value + 1,
+            len(self.app.searched_or_all())
         )
 
         for index, entry in enumerate(entries):

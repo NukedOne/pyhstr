@@ -1,3 +1,10 @@
+import collections
+import fcntl
+import termios
+
+import more_itertools
+
+
 class EntryCounter:
     def __init__(self, app):
         self.value = 0
@@ -17,6 +24,7 @@ class EntryCounter:
         else:
             self.value -= 1
 
+
 class PageCounter:
     def __init__(self):
         self.value = 0
@@ -32,3 +40,35 @@ class PageCounter:
             self.value = boundary - 1
         else:
             self.value -= 1
+
+
+def slice(thing, size):
+    return list(more_itertools.sliced(thing, size))
+
+
+def sort(thing):
+    return [
+        x[0] for x in sorted(
+            collections.Counter(thing).items(), key=lambda y: -y[1]
+        )
+    ]
+
+
+def write(path, thing):
+    with open(path, "w") as f:
+        for thingy in thing:
+            print(thingy, file=f)
+
+
+def read(path):
+    history = []
+    with open(path, "r") as f:
+        for command in f:
+            history.append(command.strip())
+    return history
+
+
+def echo(command):
+    command = command.encode("utf-8")
+    for byte in command:
+        fcntl.ioctl(0, termios.TIOCSTI, bytes([byte]))
