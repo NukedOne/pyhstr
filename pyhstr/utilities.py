@@ -2,8 +2,6 @@ import collections
 import fcntl
 import termios
 
-import more_itertools
-
 
 class EntryCounter:
     def __init__(self, app):
@@ -11,7 +9,7 @@ class EntryCounter:
         self.app = app
 
     def inc(self, boundary):
-        if self.value == boundary - 1:
+        if self.value == boundary - 1: # because indexing starts from 0, i think
             self.value = 0
             self.app.page.inc(self.app.user_interface.get_number_of_pages())
         else:
@@ -20,30 +18,26 @@ class EntryCounter:
     def dec(self):
         if self.value == 0:
             self.app.page.dec(self.app.user_interface.get_number_of_pages())
-            self.value = len(self.app.searched_or_all()[self.app.page.value]) - 1
+            self.value = len(self.app.user_interface.get_page(self.app.page.value)) - 1
         else:
             self.value -= 1
 
 
 class PageCounter:
     def __init__(self):
-        self.value = 0
+        self.value = 1
 
     def inc(self, boundary):
-        if self.value == boundary - 1:
-            self.value = 0
+        if self.value == boundary:
+            self.value = 1
         else:
             self.value += 1
 
     def dec(self, boundary):
-        if self.value == 0:
-            self.value = boundary - 1
+        if self.value == 1:
+            self.value = boundary
         else:
             self.value -= 1
-
-
-def slice(thing, size):
-    return list(more_itertools.sliced(thing, size))
 
 
 def sort(thing):
