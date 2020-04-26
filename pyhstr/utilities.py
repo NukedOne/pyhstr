@@ -19,8 +19,7 @@ class EntryCounter:
         page_size = self.app.user_interface.get_page_size(self.app.page.value)
         self.value -= 1
         self.value %= page_size
-        # in both places, we are subtracting -1
-        # because indexing starts from zero
+        # in both places, we are subtracting 1 because indexing starts from zero
         if self.value == (page_size - 1):
             self.app.page.dec()
             self.value = self.app.user_interface.get_page_size(self.app.page.value) - 1
@@ -30,7 +29,7 @@ class PageCounter:
         self.value = 1
         self.app = app
 
-    def inc(self, total_pages):
+    def inc(self):
         """
         Paging starts from 1 but we want it to start at 0,
         because that's how our calculation with modulo works.
@@ -56,18 +55,15 @@ class PageCounter:
 
         ... where -1+1 happens to cancel itself.
         """
-        self.value = (self.value % total_pages) + 1
+        self.value = (self.value % self.app.user_interface.total_pages()) + 1
 
     def dec(self):
-        total_pages = self.app.user_interface.get_number_of_pages()
-        if self.value == 1:
-            self.value = total_pages
-        else:
-            self.value -= 1
+        """
+        See the docstring for inc().
 
         self.value = ((self.value - 1 - 1) % total_pages) + 1
         """
-        self.value = ((self.value - 2) % total_pages) + 1
+        self.value = ((self.value - 2) % self.app.user_interface.total_pages()) + 1
 
 def sort(thing):
     return [

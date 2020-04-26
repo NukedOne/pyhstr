@@ -48,7 +48,7 @@ class UserInterface:
         pyhstr_status = PYHSTR_STATUS.format(
             "sensitive" if self.app.case_sensitivity else "insensitive",
             self.app.page.value,
-            self.get_number_of_pages()
+            self.total_pages()
         )
 
         for index, entry in enumerate(entries):
@@ -73,7 +73,7 @@ class UserInterface:
             ]
         )
 
-    def get_number_of_pages(self):
+    def total_pages(self):
         return len(range(0, len(self.app.all_entries), curses.LINES - 3))
 
     def get_page(self, page):
