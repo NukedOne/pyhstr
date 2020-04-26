@@ -11,7 +11,6 @@ PYTHON_HISTORY = os.path.expanduser("~/.python_history")
 
 
 class App:
-
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
@@ -27,11 +26,11 @@ class App:
 
         if self.case_sensitivity:
             self.all_entries = [
-                command for command in self.all_entries if self.search_string in command
+                cmd for cmd in self.all_entries if self.search_string in cmd
             ]
         else:
             self.all_entries = [
-                command for command in self.all_entries if self.search_string.lower() in command.lower()
+                cmd for cmd in self.all_entries if self.search_string.lower() in cmd.lower()
             ]
 
         self.user_interface.populate_screen(self.user_interface.get_page(self.page.value))
@@ -43,8 +42,8 @@ class App:
         if answer == ord("y"):
             for cmd in self.all_entries:
                 if cmd == command:
-                    page.remove(cmd)
-            write(PYTHON_HISTORY, more_itertools.flatten(self.all_entries))
+                    self.all_entries.remove(cmd)
+            write(PYTHON_HISTORY, self.all_entries)
             self.all_entries = read(PYTHON_HISTORY)
             self.user_interface.populate_screen(self.user_interface.get_page(self.page.value))
 
