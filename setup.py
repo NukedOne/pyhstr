@@ -20,10 +20,5 @@ setup(
         'Development Status :: 3 - Alpha',
         'Topic :: Utilities',
         'License :: OSI Approved :: MIT License',
-    ],
-    entry_points = {
-        'console_scripts': [
-            'pyhstr = pyhstr.app:main'
-        ],
-    }
+    ]
 )

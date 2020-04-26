@@ -16,7 +16,7 @@ class App:
         self.user_interface = UserInterface(self)
         self.all_entries = sort(read(PYTHON_HISTORY))
         self.search_string = ""
-        self.page = PageCounter()
+        self.page = PageCounter(self)
         self.selected = EntryCounter(self)
         self.case_sensitivity = False
 
@@ -44,7 +44,6 @@ class App:
                 if cmd == command:
                     self.all_entries.remove(cmd)
             write(PYTHON_HISTORY, self.all_entries)
-            self.all_entries = read(PYTHON_HISTORY)
             self.user_interface.populate_screen(self.user_interface.get_page(self.page.value))
 
         elif answer == ord("n"):
@@ -84,23 +83,19 @@ def main(stdscr):
             break
 
         elif user_input == curses.KEY_UP:
-            page_size = app.user_interface.get_page_size(app.page.value)
-            app.selected.dec(page_size)
+            app.selected.dec()
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_DOWN:
-            page_size = app.user_interface.get_page_size(app.page.value)
-            app.selected.inc(page_size)
+            app.selected.inc()
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_NPAGE:
-            total_pages = app.user_interface.get_number_of_pages()
-            app.page.inc(total_pages)
+            app.page.inc()
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_PPAGE:
-            total_pages = app.user_interface.get_number_of_pages()
-            app.page.dec(total_pages)
+            app.page.dec()
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_BACKSPACE:

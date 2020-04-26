@@ -9,6 +9,7 @@ COLORS = {
     "highlighted-green": None,
     "highlighted-red": None,
 }
+
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit"
 PYHSTR_STATUS = " - case:{} (C-t) - page {}/{}"
 
