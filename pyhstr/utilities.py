@@ -28,17 +28,41 @@ class PageCounter:
         self.value = 1
 
     def inc(self, total_pages):
-        if self.value == total_pages:
-            self.value = 1
-        else:
-            self.value += 1
+        """
+        Paging starts from 1 but we want it to start at 0,
+        because that's how our calculation with modulo works.
+
+        So, if the indexing started from zero, we would have had:
+
+        self.value = (self.value + 1) % total_pages
+
+        ...which is increment and wrap around.
+
+        Since we want the value to start at 1, we should:
+            - subtract 1 from it when using it, because we want it to
+              comply with the condition that page values start from 1,
+              so we can use it in the modulo calculation (modulo needs
+              zero-based indexing);
+            - add 1 when setting it, because what modulo gives is 
+              zero-based indexing, and we want to match the pages start
+              from 1 condition.
+
+        This gives:
+
+        self.value = ((self.value - 1 + 1) % total_pages) + 1
+
+        ... where -1+1 happens to cancel itself.
+        """
+
+        self.value = (self.value % total_pages) + 1
 
     def dec(self, total_pages):
-        if self.value == 1:
-            self.value = total_pages
-        else:
-            self.value -= 1
+        """
+        See the docstring for inc().
 
+        self.value = ((self.value - 1 - 1) % total_pages) + 1
+        """
+        self.value = ((self.value - 2) % total_pages) + 1
 
 def sort(thing):
     return [
