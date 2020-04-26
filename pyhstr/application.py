@@ -84,22 +84,23 @@ def main(stdscr):
             break
 
         elif user_input == curses.KEY_UP:
-            app.selected.dec()
+            page_size = app.user_interface.get_page_size(app.page.value)
+            app.selected.dec(page_size)
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_DOWN:
-            boundary = app.user_interface.get_page_size(app.page.value)
-            app.selected.inc(boundary)
+            page_size = app.user_interface.get_page_size(app.page.value)
+            app.selected.inc(page_size)
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_NPAGE:
-            boundary = app.user_interface.get_number_of_pages()
-            app.page.inc(boundary)
+            total_pages = app.user_interface.get_number_of_pages()
+            app.page.inc(total_pages)
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_PPAGE:
-            boundary = app.user_interface.get_number_of_pages()
-            app.page.dec(boundary)
+            total_pages = app.user_interface.get_number_of_pages()
+            app.page.dec(total_pages)
             app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
 
         elif user_input == curses.KEY_BACKSPACE:
