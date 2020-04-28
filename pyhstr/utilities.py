@@ -43,13 +43,15 @@ class Page:
         ...which is increment and wrap around.
 
         Since we want the value to start at 1, we should:
-            - subtract 1 from it when using it, because we want it to
-          comply with the condition that page values start from 1,
-          so we can use it in the modulo calculation (modulo needs
-          zero-based indexing);
-            - add 1 when setting it, because what modulo gives is 
-          zero-based indexing, and we want to match the pages start
-          from 1 condition.
+        
+        - subtract 1 from it when using it, because we want it to
+        comply with the condition that page values start from 1,
+        so we can use it in the modulo calculation (modulo needs
+        zero-based indexing);
+        
+        - add 1 when setting it, because what modulo gives is 
+        zero-based indexing, and we want to match the pages start
+        from 1 condition.
 
         This gives:
 
