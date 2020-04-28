@@ -1,6 +1,6 @@
 # pyhstr
 
-Work in progress.
+Work in progress, but it's pretty usable already.
 
 ### Installation
 
