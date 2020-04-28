@@ -18,12 +18,6 @@ You should make an alias:
 alias py='python3 -ic "from pyhstr.init import hh"'
 ```
 
-Then:
-
-```
->>> hh
-```
-
 ![screenshot](pyhstr.gif)
 
 ### FIXME 
