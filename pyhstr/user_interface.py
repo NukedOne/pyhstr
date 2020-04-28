@@ -1,5 +1,6 @@
 import curses
-import math
+
+from pyhstr.utilities import EntryCounter, Page
 
 
 COLORS = {
@@ -17,6 +18,7 @@ PYHSTR_STATUS = " - case:{} (C-t) - page {}/{}"
 class UserInterface:
     def __init__(self, app):
         self.app = app
+        self.page = Page(self.app)
 
     def _addstr(self, y_coord, x_coord, text, color_info):
         """
@@ -43,16 +45,16 @@ class UserInterface:
         COLORS["highlighted-green"] = curses.color_pair(3)
         COLORS["highlighted-red"] = curses.color_pair(4)
 
-    def populate_screen(self, entries):
+    def populate_screen(self):
         self.app.stdscr.clear()
         pyhstr_status = PYHSTR_STATUS.format(
             "sensitive" if self.app.case_sensitivity else "insensitive",
-            self.app.page.value,
-            self.total_pages()
+            self.app.user_interface.page.value,
+            self.app.user_interface.page.total_pages()
         )
-
+        entries = self.page.get_page()
         for index, entry in enumerate(entries):
-            if index == self.app.selected.value:
+            if index == self.app.user_interface.page.selected.value:
                 self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["highlighted-green"])
             else:
                 self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
@@ -66,18 +68,3 @@ class UserInterface:
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
 
-    def get_page_size(self):
-        return len(
-            self.app.all_entries[
-                (self.app.page.value - 1) * (curses.LINES - 3) : self.app.page.value * (curses.LINES - 3)
-            ]
-        )
-
-    def total_pages(self):
-        return len(range(0, len(self.app.all_entries), curses.LINES - 3))
-
-    def get_page(self):
-        return self.app.all_entries[
-            (self.app.page.value - 1) * self.get_page_size() : 
-            self.app.page.value * self.get_page_size()
-        ]

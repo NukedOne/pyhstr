@@ -1,3 +1,4 @@
+import curses
 import collections
 import fcntl
 import termios
@@ -9,25 +10,26 @@ class EntryCounter:
         self.app = app
 
     def inc(self):
-        page_size = self.app.user_interface.get_page_size()
+        page_size = self.app.user_interface.page.get_page_size()
         self.value += 1
         self.value %= page_size
         if self.value == 0:
-            self.app.page.inc()
+            self.app.user_interface.page.inc()
 
     def dec(self):
-        page_size = self.app.user_interface.get_page_size()
+        page_size = self.app.user_interface.page.get_page_size()
         self.value -= 1
         self.value %= page_size
         # in both places, we are subtracting 1 because indexing starts from zero
         if self.value == (page_size - 1):
-            self.app.page.dec()
-            self.value = self.app.user_interface.get_page_size() - 1
+            self.app.user_interface.page.dec()
+            self.value = self.app.user_interface.page.get_page_size() - 1
 
-class PageCounter:
+class Page:
     def __init__(self, app):
         self.value = 1
         self.app = app
+        self.selected = EntryCounter(self.app)
 
     def inc(self):
         """
@@ -42,12 +44,12 @@ class PageCounter:
 
         Since we want the value to start at 1, we should:
             - subtract 1 from it when using it, because we want it to
-            comply with the condition that page values start from 1,
-            so we can use it in the modulo calculation (modulo needs
-            zero-based indexing);
+          comply with the condition that page values start from 1,
+          so we can use it in the modulo calculation (modulo needs
+          zero-based indexing);
             - add 1 when setting it, because what modulo gives is 
-            zero-based indexing, and we want to match the pages start
-            from 1 condition.
+          zero-based indexing, and we want to match the pages start
+          from 1 condition.
 
         This gives:
 
@@ -55,7 +57,7 @@ class PageCounter:
 
         ... where -1+1 happens to cancel itself.
         """
-        self.value = (self.value % self.app.user_interface.total_pages()) + 1
+        self.value = (self.value % self.app.user_interface.page.total_pages()) + 1
 
     def dec(self):
         """
@@ -63,7 +65,25 @@ class PageCounter:
 
         self.value = ((self.value - 1 - 1) % total_pages) + 1
         """
-        self.value = ((self.value - 2) % self.app.user_interface.total_pages()) + 1
+        self.value = ((self.value - 2) % self.app.user_interface.page.total_pages()) + 1
+
+    def get_page_size(self):
+        return len(
+            self.app.all_entries[
+                (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
+            ]
+        )
+
+    def total_pages(self):
+        return len(range(0, len(self.app.all_entries), curses.LINES - 3))
+
+    def get_page(self):
+        return self.app.all_entries[
+            (self.value - 1) * self.get_page_size() : self.value * self.get_page_size()
+        ]
+    
+    def get_selected(self):
+        return self.get_page()[self.selected.value]
 
 def sort(thing):
     return [
