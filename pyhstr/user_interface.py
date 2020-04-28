@@ -54,10 +54,13 @@ class UserInterface:
         )
         entries = self.page.get_page()
         for index, entry in enumerate(entries):
-            if index == self.app.user_interface.page.selected.value:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["highlighted-green"])
-            else:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+            try:
+                if index == self.app.user_interface.page.selected.value:
+                    self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["highlighted-green"])
+                else:
+                    self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+            except curses.error:
+                pass
 
         self._addstr(1, 0, PYHSTR_LABEL, COLORS["normal"])
         self._addstr(2, 0, pyhstr_status.ljust(curses.COLS), COLORS["highlighted-white"])

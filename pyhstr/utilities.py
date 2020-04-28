@@ -69,15 +69,15 @@ class Page:
         """
         self.value = ((self.value - 2) % self.app.user_interface.page.total_pages()) + 1
 
+    def total_pages(self):
+        return len(range(0, len(self.app.all_entries), curses.LINES - 3))
+
     def get_page_size(self):
         return len(
             self.app.all_entries[
                 (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
             ]
         )
-
-    def total_pages(self):
-        return len(range(0, len(self.app.all_entries), curses.LINES - 3))
 
     def get_page(self):
         return self.app.all_entries[
