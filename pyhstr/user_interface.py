@@ -126,7 +126,7 @@ class Page:
 
         ... where -1+1 happens to cancel itself.
         """
-        self.value = (self.value % self.app.user_interface.page.total_pages()) + 1
+        self.value = (self.value % self.total_pages()) + 1
 
     def dec(self):
         """
@@ -134,7 +134,7 @@ class Page:
 
         self.value = ((self.value - 1 - 1) % total_pages) + 1
         """
-        self.value = ((self.value - 2) % self.app.user_interface.page.total_pages()) + 1
+        self.value = ((self.value - 2) % self.total_pages()) + 1
 
     def total_pages(self):
         return len(range(0, len(self.app.all_entries), curses.LINES - 3))
