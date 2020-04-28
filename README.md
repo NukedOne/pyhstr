@@ -2,6 +2,14 @@
 
 Work in progress.
 
+### Installation
+
+```bash
+git clone https://github.com/xvm32/pyhstr.git
+cd pyhstr
+python3 -m pip install -e .
+```
+
 ### Usage
 
 You should make an alias:
