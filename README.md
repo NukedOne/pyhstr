@@ -24,6 +24,8 @@ Then:
 >>> hh
 ```
 
+![screenshot](pyhstr.gif)
+
 ### FIXME 
 
 - implement search by regex
