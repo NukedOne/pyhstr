@@ -56,7 +56,7 @@ class App:
 def main(stdscr):
     app = App(stdscr)
     app.user_interface.init_color_pairs()
-    app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
+    app.user_interface.populate_screen(app.user_interface.get_page())
 
     while True:
         try:
@@ -65,38 +65,38 @@ def main(stdscr):
             continue
 
         if user_input == 9: # TAB
-            command = app.user_interface.get_page(app.page.value)[app.selected.value]
+            command = app.user_interface.get_page()[app.selected.value]
             echo(command)
             break
 
         elif user_input == 10: # ENTER ("\n")
-            command = app.user_interface.get_page(app.page.value)[app.selected.value]
+            command = app.user_interface.get_page()[app.selected.value]
             echo(command)
             echo("\n")
             break
 
         elif user_input == 20: # C-t
             app.toggle_case()
-            app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
+            app.user_interface.populate_screen(app.user_interface.get_page())
 
         elif user_input == 27: # ESC
             break
 
         elif user_input == curses.KEY_UP:
             app.selected.dec()
-            app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
+            app.user_interface.populate_screen(app.user_interface.get_page())
 
         elif user_input == curses.KEY_DOWN:
             app.selected.inc()
-            app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
+            app.user_interface.populate_screen(app.user_interface.get_page())
 
         elif user_input == curses.KEY_NPAGE:
             app.page.inc()
-            app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
+            app.user_interface.populate_screen(app.user_interface.get_page())
 
         elif user_input == curses.KEY_PPAGE:
             app.page.dec()
-            app.user_interface.populate_screen(app.user_interface.get_page(app.page.value))
+            app.user_interface.populate_screen(app.user_interface.get_page())
 
         elif user_input == curses.KEY_BACKSPACE:
             app.search_string = app.search_string[:-1]
@@ -106,7 +106,7 @@ def main(stdscr):
             app.search()
 
         elif user_input == curses.KEY_DC: # del
-            command = app.user_interface.get_page(app.page.value)[app.selected.value]
+            command = app.user_interface.get_page()[app.selected.value]
             app.delete_from_history(command)
 
         else:

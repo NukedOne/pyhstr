@@ -66,18 +66,18 @@ class UserInterface:
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
 
-    def get_page_size(self, page):
+    def get_page_size(self):
         return len(
             self.app.all_entries[
-                (page - 1) * (curses.LINES - 3) : page * (curses.LINES - 3)
+                (self.app.page.value - 1) * (curses.LINES - 3) : self.app.page.value * (curses.LINES - 3)
             ]
         )
 
     def total_pages(self):
         return len(range(0, len(self.app.all_entries), curses.LINES - 3))
 
-    def get_page(self, page):
+    def get_page(self):
         return self.app.all_entries[
-            (self.app.page.value - 1) * self.get_page_size(self.app.page.value) : 
-            self.app.page.value * self.get_page_size(self.app.page.value)
+            (self.app.page.value - 1) * self.get_page_size() : 
+            self.app.page.value * self.get_page_size()
         ]
