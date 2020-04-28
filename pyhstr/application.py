@@ -112,6 +112,7 @@ def main(stdscr):
             app.search_string += chr(user_input)
             app.search()
 
+# don't forget to remove this
 if __name__ == "__main__":
     curses.wrapper(main)
     
