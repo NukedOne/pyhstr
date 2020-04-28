@@ -1,11 +1,15 @@
 import curses
+import sys
+
 from pyhstr.application import main
 
+hh = object()
+original = sys.displayhook
 
-class SpamEggs:
-    def __repr__(self):
+def spam(arg):
+    if arg == hh:
         curses.wrapper(main)
-        return '>>>'
+    else:
+        original(arg)
 
-
-hh = SpamEggs()
+sys.displayhook = spam
