@@ -1,6 +1,6 @@
 import curses
 
-from pyhstr.utilities import EntryCounter, Page
+from pyhstr.utilities import Page
 
 
 COLORS = {
