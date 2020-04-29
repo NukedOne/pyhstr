@@ -1,7 +1,6 @@
 import curses
 import os
 
-
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
     echo, read, sort, write
@@ -111,5 +110,3 @@ def main(stdscr):
         else:
             app.user_interface.search_string += user_input
             app.search()
-
-
