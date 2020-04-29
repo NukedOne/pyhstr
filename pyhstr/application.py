@@ -59,26 +59,26 @@ def main(stdscr):
 
     while True:
         try:
-            user_input = app.stdscr.getch()
+            user_input = app.stdscr.get_wch()
         except curses.error:
             continue
 
-        if user_input == 9: # TAB
+        if user_input == "\t": # TAB
             command = app.user_interface.page.get_selected()
             echo(command)
             break
 
-        elif user_input == 10: # ENTER ("\n")
+        elif user_input == "\n": # ENTER
             command = app.user_interface.page.get_selected()
             echo(command)
             echo("\n")
             break
 
-        elif user_input == 20: # C-t
+        elif user_input == "\x14": # C-t
             app.toggle_case()
             app.user_interface.populate_screen()
 
-        elif user_input == 27: # ESC
+        elif user_input == "\x1b": # ESC
             break
 
         elif user_input == curses.KEY_UP:
@@ -109,10 +109,7 @@ def main(stdscr):
             app.delete_from_history(command)
 
         else:
-            app.user_interface.search_string += chr(user_input)
+            app.user_interface.search_string += user_input
             app.search()
 
-# don't forget to remove this
-if __name__ == "__main__":
-    curses.wrapper(main)
-    
+

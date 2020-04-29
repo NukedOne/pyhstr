@@ -24,4 +24,3 @@ alias py='python3 -ic "from pyhstr.init import hh"'
 
 - implement search by regex
 - make it work for ipython
-- handle unicode properly
