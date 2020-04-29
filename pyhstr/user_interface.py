@@ -1,5 +1,5 @@
 import curses
-
+import sys
 
 COLORS = {
     # yet to be initialized
@@ -63,7 +63,7 @@ class UserInterface:
 
         self._addstr(1, 0, PYHSTR_LABEL, COLORS["normal"])
         self._addstr(2, 0, pyhstr_status.ljust(curses.COLS), COLORS["highlighted-white"])
-        self._addstr(0, 0, f">>> {self.search_string}", COLORS["normal"])
+        self._addstr(0, 0, f"{sys.ps1}{self.search_string}", COLORS["normal"])
 
     def prompt_for_deletion(self, command):
         prompt = f"Do you want to delete all occurences of {command}? y/n"
