@@ -15,7 +15,7 @@ python3 -m pip install -e .
 You should make an alias:
 
 ```bash
-alias py='python3 -ic "from pyhstr.init import hh"'
+alias py='python3 -ic "from pyhstr import hh"'
 ```
 
 ![screenshot](pyhstr.gif)
