@@ -17,6 +17,7 @@ class UserInterface:
     def __init__(self, app):
         self.app = app
         self.page = Page(self.app)
+        self.search_string = ""
 
     def _addstr(self, y_coord, x_coord, text, color_info):
         """
@@ -62,7 +63,7 @@ class UserInterface:
 
         self._addstr(1, 0, PYHSTR_LABEL, COLORS["normal"])
         self._addstr(2, 0, pyhstr_status.ljust(curses.COLS), COLORS["highlighted-white"])
-        self._addstr(0, 0, f">>> {self.app.search_string}", COLORS["normal"])
+        self._addstr(0, 0, f">>> {self.search_string}", COLORS["normal"])
 
     def prompt_for_deletion(self, command):
         prompt = f"Do you want to delete all occurences of {command}? y/n"
