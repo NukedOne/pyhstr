@@ -1,8 +1,6 @@
 import curses
 import sys
 
-import q
-
 
 COLORS = {
     # yet to be initialized
@@ -14,7 +12,7 @@ COLORS = {
 }
 
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
-PYHSTR_STATUS = " - view:{} - case:{} (C-t) - page {}/{} -"
+PYHSTR_STATUS = " - view:{} (C-/) - case:{} (C-t) - page {}/{} -"
 
 VIEW_MAPPING = {
     0: "sorted", 

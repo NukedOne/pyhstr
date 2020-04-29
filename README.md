@@ -25,3 +25,4 @@ alias py='python3 -ic "from pyhstr import hh"'
 - implement search by regex
 - make it work for ipython (how do I set sys.displayhook on IPython?)
 - handle non-existant config files
+- remove duplicates from "history"
