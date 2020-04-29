@@ -1,16 +1,26 @@
 import curses
 import sys
 
+import q
+
+
 COLORS = {
     # yet to be initialized
     "normal": None,
+    "white": None,
     "highlighted-white": None,
     "highlighted-green": None,
     "highlighted-red": None,
 }
 
-PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit"
-PYHSTR_STATUS = " - case:{} (C-t) - page {}/{}"
+PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
+PYHSTR_STATUS = " - view:{} - case:{} (C-t) - page {}/{} -"
+
+VIEW_MAPPING = {
+    0: "sorted", 
+    1: "favorites",
+    2: "history"
+}
 
 
 class UserInterface:
@@ -39,14 +49,17 @@ class UserInterface:
         curses.init_pair(2, 0, 15)
         curses.init_pair(3, 15, curses.COLOR_GREEN)
         curses.init_pair(4, 15, curses.COLOR_RED)
+        curses.init_pair(5, 15, 0)
         COLORS["normal"] = curses.color_pair(1)
         COLORS["highlighted-white"] = curses.color_pair(2)
         COLORS["highlighted-green"] = curses.color_pair(3)
         COLORS["highlighted-red"] = curses.color_pair(4)
+        COLORS["white"] = curses.color_pair(5)
 
     def populate_screen(self):
         self.app.stdscr.clear()
         pyhstr_status = PYHSTR_STATUS.format(
+            VIEW_MAPPING[self.app.view],
             "sensitive" if self.app.case_sensitivity else "insensitive",
             self.app.user_interface.page.value,
             self.app.user_interface.page.total_pages()
@@ -54,10 +67,11 @@ class UserInterface:
         entries = self.page.get_page()
         for index, entry in enumerate(entries):
             try:
+                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+                if entry in self.app.all_entries[1]:
+                    self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["white"])
                 if index == self.app.user_interface.page.selected.value:
                     self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["highlighted-green"])
-                else:
-                    self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
             except curses.error:
                 pass
 
@@ -138,17 +152,17 @@ class Page:
         self.value = ((self.value - 2) % self.total_pages()) + 1
 
     def total_pages(self):
-        return len(range(0, len(self.app.all_entries), curses.LINES - 3))
+        return len(range(0, len(self.app.all_entries[self.app.view]), curses.LINES - 3))
 
     def get_page_size(self):
         return len(
-            self.app.all_entries[
+            self.app.all_entries[self.app.view][
                 (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
             ]
         )
 
     def get_page(self):
-        return self.app.all_entries[
+        return self.app.all_entries[self.app.view][
             (self.value - 1) * self.get_page_size() : self.value * self.get_page_size()
         ]
     

@@ -8,27 +8,33 @@ from pyhstr.utilities import (
 
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
+FAVORITES = os.path.expanduser("~/.config/pyhstr/favorites")
 
 
 class App:
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
-        self.all_entries = sort(read(PYTHON_HISTORY))
-        self.to_restore = self.all_entries[:]
+        self.all_entries = {
+            0: sort(read(PYTHON_HISTORY)),
+            1: sort(read(FAVORITES)),
+            2: read(PYTHON_HISTORY)
+        }
+        self.to_restore = self.all_entries.copy()
         self.case_sensitivity = False
+        self.view = 0 # 0 = sorted; 1 = favorites; 2 = history
 
     def search(self):
         self.user_interface.page.selected.value = 0
         self.user_interface.page.value = 1
 
         if self.case_sensitivity:
-            self.all_entries = [
-                cmd for cmd in self.all_entries if self.user_interface.search_string in cmd
+            self.all_entries[self.view] = [
+                cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string in cmd
             ]
         else:
-            self.all_entries = [
-                cmd for cmd in self.all_entries if self.user_interface.search_string.lower() in cmd.lower()
+            self.all_entries[self.view] = [
+                cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string.lower() in cmd.lower()
             ]
 
         self.user_interface.populate_screen()
@@ -38,10 +44,10 @@ class App:
         answer = self.stdscr.getch()
 
         if answer == ord("y"):
-            for cmd in self.all_entries:
+            for cmd in self.all_entries[2]:
                 if cmd == command:
-                    self.all_entries.remove(cmd)
-            write(PYTHON_HISTORY, self.all_entries)
+                    self.all_entries[2].remove(cmd)
+            write(PYTHON_HISTORY, self.all_entries[2])
             self.user_interface.populate_screen()
 
         elif answer == ord("n"):
@@ -49,6 +55,17 @@ class App:
 
     def toggle_case(self):
         self.case_sensitivity = not self.case_sensitivity
+    
+    def toggle_view(self):
+        self.view = (self.view + 1) % 3
+        self.user_interface.page.selected.value = 0
+
+    def add_to_or_remove_from_favorites(self, command):
+        if command not in self.all_entries[1]:
+            self.all_entries[1].append(command)
+        else:
+            self.all_entries[1].remove(command)
+        write(FAVORITES, self.all_entries[1])
 
 
 def main(stdscr):
@@ -62,7 +79,11 @@ def main(stdscr):
         except curses.error:
             continue
 
-        if user_input == "\t": # TAB
+        if user_input == "\x06": # C-f
+            command = app.user_interface.page.get_selected()
+            app.add_to_or_remove_from_favorites(command)
+
+        elif user_input == "\t": # TAB
             command = app.user_interface.page.get_selected()
             echo(command)
             break
@@ -79,6 +100,10 @@ def main(stdscr):
 
         elif user_input == "\x1b": # ESC
             break
+
+        elif user_input == "\x1f": # C-/
+            app.toggle_view()
+            app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_UP:
             app.user_interface.page.selected.dec()
@@ -100,7 +125,7 @@ def main(stdscr):
             app.user_interface.search_string = app.user_interface.search_string[:-1]
             if not app.user_interface.search_string:
                 app.user_interface.page.selected.value = 0
-            app.all_entries = app.to_restore[:]
+            app.all_entries = app.to_restore.copy()
             app.search()
 
         elif user_input == curses.KEY_DC: # del
