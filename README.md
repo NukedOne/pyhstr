@@ -23,4 +23,5 @@ alias py='python3 -ic "from pyhstr import hh"'
 ### FIXME 
 
 - implement search by regex
-- make it work for ipython
+- make it work for ipython (how do I set sys.displayhook on IPython?)
+- handle non-existant config files
