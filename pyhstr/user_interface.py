@@ -12,12 +12,22 @@ COLORS = {
 }
 
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
-PYHSTR_STATUS = " - view:{} (C-/) - case:{} (C-t) - page {}/{} -"
+PYHSTR_STATUS = " - view:{} (C-/) - match: {} - case:{} (C-t) - page {}/{} -"
 
-VIEW_MAPPING = {
-    0: "sorted", 
-    1: "favorites",
-    2: "history"
+DISPLAY = {
+    "view": {
+        0: "sorted", 
+        1: "favorites",
+        2: "history"
+    },
+    "case": {
+        True: "sensitive",
+        False: "insensitive"
+    },
+    "match": {
+        0: "exact",
+        1: "regex"
+    }
 }
 
 
@@ -57,8 +67,9 @@ class UserInterface:
     def populate_screen(self):
         self.app.stdscr.clear()
         pyhstr_status = PYHSTR_STATUS.format(
-            VIEW_MAPPING[self.app.view],
-            "sensitive" if self.app.case_sensitivity else "insensitive",
+            DISPLAY["view"][self.app.view],
+            DISPLAY["match"][self.app.match],
+            DISPLAY["case"][self.app.case_sensitivity],
             self.app.user_interface.page.value,
             self.app.user_interface.page.total_pages()
         )

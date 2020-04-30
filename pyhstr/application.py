@@ -1,5 +1,8 @@
 import curses
 import os
+import re
+
+import q
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
@@ -23,18 +26,28 @@ class App:
         self.to_restore = self.all_entries.copy()
         self.case_sensitivity = False
         self.view = 0 # 0 = sorted; 1 = favorites; 2 = history
+        self.match = 0 # 0 = exact; 1 = regex
 
     def search(self):
         self.user_interface.page.selected.value = 0
         self.user_interface.page.value = 1
+        self.all_entries = self.to_restore.copy()
 
-        if self.case_sensitivity:
-            self.all_entries[self.view] = [
-                cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string in cmd
-            ]
+        if not self.match:
+            if self.case_sensitivity:
+                self.all_entries[self.view] = [
+                    cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string in cmd
+                ]
+            else:
+                self.all_entries[self.view] = [
+                    cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string.lower() in cmd.lower()
+                ]
         else:
             self.all_entries[self.view] = [
-                cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string.lower() in cmd.lower()
+                cmd for cmd in self.all_entries[self.view] 
+                if (re.fullmatch(self.user_interface.search_string, cmd) 
+                    if self.user_interface.search_string else
+                    self.user_interface.search_string in cmd)
             ]
 
         self.user_interface.populate_screen()
@@ -60,6 +73,10 @@ class App:
         self.view = (self.view + 1) % 3
         self.user_interface.page.selected.value = 0
 
+    def toggle_match(self):
+        self.match = (self.match + 1) % 2
+        self.user_interface.page.selected.value = 0
+
     def add_to_or_remove_from_favorites(self, command):
         if command not in self.all_entries[1]:
             self.all_entries[1].append(command)
@@ -79,7 +96,11 @@ def main(stdscr):
         except curses.error:
             continue
 
-        if user_input == "\x06": # C-f
+        if user_input == "\x05": # C-e
+            app.toggle_match()
+            app.user_interface.populate_screen()
+
+        elif user_input == "\x06": # C-f
             command = app.user_interface.page.get_selected()
             app.add_to_or_remove_from_favorites(command)
 
@@ -125,7 +146,6 @@ def main(stdscr):
             app.user_interface.search_string = app.user_interface.search_string[:-1]
             if not app.user_interface.search_string:
                 app.user_interface.page.selected.value = 0
-            app.all_entries = app.to_restore.copy()
             app.search()
 
         elif user_input == curses.KEY_DC: # del
