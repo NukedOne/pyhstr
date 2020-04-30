@@ -70,7 +70,7 @@ class UserInterface:
             DISPLAY["view"][self.app.view],
             DISPLAY["match"][self.app.match],
             DISPLAY["case"][self.app.case_sensitivity],
-            self.app.user_interface.page.value,
+            self.app.user_interface.page.value if self.app.user_interface.page.total_pages() > 0 else 0,
             self.app.user_interface.page.total_pages()
         )
         entries = self.page.get_page()

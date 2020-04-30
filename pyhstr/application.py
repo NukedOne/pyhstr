@@ -6,7 +6,7 @@ import q
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
-    echo, read, sort, write
+    echo, read, remove_duplicates, sort, write
 )
 
 
@@ -21,7 +21,7 @@ class App:
         self.all_entries = {
             0: sort(read(PYTHON_HISTORY)),
             1: sort(read(FAVORITES)),
-            2: read(PYTHON_HISTORY)
+            2: remove_duplicates(read(PYTHON_HISTORY))
         }
         self.to_restore = self.all_entries.copy()
         self.case_sensitivity = False
