@@ -31,7 +31,6 @@ class App:
     def search(self):
         self.user_interface.page.selected.value = 0
         self.user_interface.page.value = 1
-        self.all_entries = self.to_restore.copy()
 
         if not self.match:
             if self.case_sensitivity:
@@ -44,10 +43,7 @@ class App:
                 ]
         else:
             self.all_entries[self.view] = [
-                cmd for cmd in self.all_entries[self.view] 
-                if (re.fullmatch(self.user_interface.search_string, cmd) 
-                    if self.user_interface.search_string else
-                    self.user_interface.search_string in cmd)
+                cmd for cmd in self.all_entries[self.view] if re.search(self.user_interface.search_string, cmd)
             ]
 
         self.user_interface.populate_screen()
@@ -146,6 +142,7 @@ def main(stdscr):
             app.user_interface.search_string = app.user_interface.search_string[:-1]
             if not app.user_interface.search_string:
                 app.user_interface.page.selected.value = 0
+            app.all_entries = app.to_restore.copy()
             app.search()
 
         elif user_input == curses.KEY_DC: # del
