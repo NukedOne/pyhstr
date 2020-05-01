@@ -9,6 +9,7 @@ COLORS = {
     "highlighted-white": None,
     "highlighted-green": None,
     "highlighted-red": None,
+    "bold-red": None
 }
 
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
@@ -58,11 +59,13 @@ class UserInterface:
         curses.init_pair(3, 15, curses.COLOR_GREEN)
         curses.init_pair(4, 15, curses.COLOR_RED)
         curses.init_pair(5, 15, 0)
+        curses.init_pair(6, curses.COLOR_RED, 0)
         COLORS["normal"] = curses.color_pair(1)
         COLORS["highlighted-white"] = curses.color_pair(2)
         COLORS["highlighted-green"] = curses.color_pair(3)
         COLORS["highlighted-red"] = curses.color_pair(4)
         COLORS["white"] = curses.color_pair(5)
+        COLORS["bold-red"] = curses.color_pair(6) | curses.A_BOLD
 
     def populate_screen(self):
         self.app.stdscr.clear()
@@ -75,9 +78,19 @@ class UserInterface:
         )
         entries = self.page.get_page()
         for index, entry in enumerate(entries):
+            # print everything normal first,
+            # then print favorites
+            # then print selected on top of all that
             try:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
-                if entry in self.app.all_entries[1]:
+                for i, ch in enumerate(entry):
+                    if ch in self.search_string:
+                        self.app.stdscr.attron(COLORS["bold-red"])
+                        self.app.stdscr.addch(index + 3, i, ch)
+                        self.app.stdscr.attroff(COLORS["bold-red"])
+                    else:
+                        self.app.stdscr.addch(index + 3, i, ch, COLORS["normal"])
+#                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+                if entry in self.app.all_entries[1]: # in favorites
                     self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["white"])
                 if index == self.app.user_interface.page.selected.value:
                     self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["highlighted-green"])

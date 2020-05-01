@@ -2,7 +2,6 @@ import curses
 import os
 import re
 
-import q
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
