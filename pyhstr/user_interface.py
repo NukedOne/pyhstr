@@ -78,18 +78,19 @@ class UserInterface:
         )
         entries = self.page.get_page()
         for index, entry in enumerate(entries):
-            # print everything normal first,
-            # then print favorites
-            # then print selected on top of all that
+            # print everything first (normal),
+            # then print found matches (in red)
+            # then print favorites (white)
+            # then print selected on top of all that (green)
             try:
-                for i, ch in enumerate(entry):
-                    if ch in self.search_string:
-                        self.app.stdscr.attron(COLORS["bold-red"])
-                        self.app.stdscr.addch(index + 3, i, ch)
-                        self.app.stdscr.attroff(COLORS["bold-red"])
-                    else:
-                        self.app.stdscr.addch(index + 3, i, ch, COLORS["normal"])
-#                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+                substring_indexes = self.get_substring_indexes(entry)
+                if substring_indexes:
+                    for substring_index in substring_indexes:
+                        for i in range(len(self.search_string)):
+                            self.app.stdscr.attron(COLORS["bold-red"])
+                            self.app.stdscr.addch(index + 3, substring_index + i, self.search_string[i])
+                            self.app.stdscr.attroff(COLORS["bold-red"])
                 if entry in self.app.all_entries[1]: # in favorites
                     self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["white"])
                 if index == self.app.user_interface.page.selected.value:
@@ -106,6 +107,8 @@ class UserInterface:
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
 
+    def get_substring_indexes(self, entry):
+        return [i for i in range(len(entry)) if entry.startswith(self.search_string, i)]
 
 class EntryCounter:
     def __init__(self, app):
