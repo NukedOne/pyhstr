@@ -1,4 +1,5 @@
 import curses
+import re
 import sys
 
 
@@ -83,18 +84,18 @@ class UserInterface:
             # then print favorites (white)
             # then print selected on top of all that (green)
             try:
-                self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["normal"])
+                self._addstr(index + 3, 0, f" {entry.ljust(curses.COLS - 1)}", COLORS["normal"])
                 substring_indexes = self.get_substring_indexes(entry)
                 if substring_indexes:
-                    for substring_index in substring_indexes:
-                        for i in range(len(self.search_string)):
+                    for idx, letter in enumerate(entry):
+                        if idx in substring_indexes:
                             self.app.stdscr.attron(COLORS["bold-red"])
-                            self.app.stdscr.addch(index + 3, substring_index + i, self.search_string[i])
+                            self.app.stdscr.addch(index + 3, idx + 1, letter)
                             self.app.stdscr.attroff(COLORS["bold-red"])
                 if entry in self.app.all_entries[1]: # in favorites
-                    self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["white"])
+                    self._addstr(index + 3, 0, f" {entry.ljust(curses.COLS - 1)}", COLORS["white"])
                 if index == self.app.user_interface.page.selected.value:
-                    self._addstr(index + 3, 0, entry.ljust(curses.COLS), COLORS["highlighted-green"])
+                    self._addstr(index + 3, 0, f" {entry.ljust(curses.COLS - 1)}", COLORS["highlighted-green"])
             except curses.error:
                 pass
 
@@ -108,28 +109,34 @@ class UserInterface:
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
 
     def get_substring_indexes(self, entry):
-        return [i for i in range(len(entry)) if entry.startswith(self.search_string, i)]
+        return [
+            y for x in [
+                list(i) for i in [
+                    range(start, end) for start, end in [
+                        m.span() for m in re.finditer(self.search_string, entry)
+                    ]
+                ]
+            ] for y in x
+        ]
+
 
 class EntryCounter:
     def __init__(self, app):
         self.value = 0
         self.app = app
 
-    def inc(self):
+    def move(self, direction):
         page_size = self.app.user_interface.page.get_page_size()
-        self.value += 1
+        self.value += direction
         self.value %= page_size
-        if self.value == 0:
-            self.app.user_interface.page.inc()
-
-    def dec(self):
-        page_size = self.app.user_interface.page.get_page_size()
-        self.value -= 1
-        self.value %= page_size
-        # in both places, we are subtracting 1 because indexing starts from zero
-        if self.value == (page_size - 1):
-            self.app.user_interface.page.dec()
-            self.value = self.app.user_interface.page.get_page_size() - 1
+        if direction == 1:
+            if self.value == 0:
+                self.app.user_interface.page.turn(1)
+        elif direction == -1:
+            # in both places, we are subtracting 1 because indexing starts from zero
+            if self.value == (page_size - 1):
+                self.app.user_interface.page.turn(-1)
+                self.value = self.app.user_interface.page.get_page_size() - 1
 
 
 class Page:
@@ -138,7 +145,7 @@ class Page:
         self.app = app
         self.selected = EntryCounter(self.app)
 
-    def inc(self):
+    def turn(self, direction):
         """
         Paging starts from 1 but we want it to start at 0,
         because that's how our calculation with modulo works.
@@ -166,15 +173,7 @@ class Page:
 
         ... where -1+1 happens to cancel itself.
         """
-        self.value = (self.value % self.total_pages()) + 1
-
-    def dec(self):
-        """
-        See the docstring for inc().
-
-        self.value = ((self.value - 1 - 1) % total_pages) + 1
-        """
-        self.value = ((self.value - 2) % self.total_pages()) + 1
+        self.value = ((self.value - 1 + direction) % self.total_pages()) + 1
 
     def total_pages(self):
         return len(range(0, len(self.app.all_entries[self.app.view]), curses.LINES - 3))

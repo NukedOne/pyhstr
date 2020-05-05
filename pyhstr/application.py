@@ -122,19 +122,19 @@ def main(stdscr):
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_UP:
-            app.user_interface.page.selected.dec()
+            app.user_interface.page.selected.move(-1)
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_DOWN:
-            app.user_interface.page.selected.inc()
+            app.user_interface.page.selected.move(1)
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_NPAGE:
-            app.user_interface.page.inc()
+            app.user_interface.page.turn(1)
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_PPAGE:
-            app.user_interface.page.dec()
+            app.user_interface.page.turn(-1)
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_BACKSPACE:
