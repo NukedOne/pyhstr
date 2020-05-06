@@ -179,15 +179,11 @@ class Page:
         return len(range(0, len(self.app.all_entries[self.app.view]), curses.LINES - 3))
 
     def get_page_size(self):
-        return len(
-            self.app.all_entries[self.app.view][
-                (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
-            ]
-        )
+        return len(self.get_page())
 
     def get_page(self):
         return self.app.all_entries[self.app.view][
-            (self.value - 1) * self.get_page_size() : self.value * self.get_page_size()
+            (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
         ]
     
     def get_selected(self):
