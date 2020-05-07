@@ -111,7 +111,7 @@ class UserInterface:
     def get_substring_indexes(self, entry):
         return [
             y for x in [
-                list(i) for i in [
+                list(r) for r in [
                     range(start, end) for start, end in [
                         m.span() for m in re.finditer(self.search_string, entry)
                     ]
