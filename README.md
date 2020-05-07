@@ -1,6 +1,6 @@
 # pyhstr
 
-Work in progress, but it's pretty usable already.
+**pyhstr** is history suggest box for the standard Python shell. Inspired by hstr.
 
 ### Installation
 

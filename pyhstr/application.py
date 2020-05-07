@@ -34,15 +34,18 @@ class App:
         if not self.match:
             if self.case_sensitivity:
                 self.all_entries[self.view] = [
-                    cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string in cmd
+                    cmd for cmd in self.all_entries[self.view]
+                    if self.user_interface.search_string in cmd
                 ]
             else:
                 self.all_entries[self.view] = [
-                    cmd for cmd in self.all_entries[self.view] if self.user_interface.search_string.lower() in cmd.lower()
+                    cmd for cmd in self.all_entries[self.view]
+                    if self.user_interface.search_string.lower() in cmd.lower()
                 ]
         else:
             self.all_entries[self.view] = [
-                cmd for cmd in self.all_entries[self.view] if re.search(self.user_interface.search_string, cmd)
+                cmd for cmd in self.all_entries[self.view]
+                if re.search(self.user_interface.search_string, cmd)
             ]
 
         self.user_interface.populate_screen()
