@@ -25,13 +25,13 @@ class App:
         self.to_restore = self.all_entries.copy()
         self.case_sensitivity = False
         self.view = 0 # 0 = sorted; 1 = favorites; 2 = history
-        self.match = 0 # 0 = exact; 1 = regex
+        self.regex_match = False
 
     def search(self):
         self.user_interface.page.selected.value = 0
         self.user_interface.page.value = 1
 
-        if not self.match:
+        if not self.regex_match:
             if self.case_sensitivity:
                 self.all_entries[self.view] = [
                     cmd for cmd in self.all_entries[self.view]
@@ -69,11 +69,9 @@ class App:
     
     def toggle_view(self):
         self.view = (self.view + 1) % 3
-        self.user_interface.page.selected.value = 0
 
     def toggle_match(self):
-        self.match = (self.match + 1) % 2
-        self.user_interface.page.selected.value = 0
+        self.regex_match = not self.regex_match
 
     def add_to_or_remove_from_favorites(self, command):
         if command not in self.all_entries[1]:
@@ -96,6 +94,7 @@ def main(stdscr):
 
         if user_input == "\x05": # C-e
             app.toggle_match()
+            app.user_interface.page.selected.value = 0
             app.user_interface.populate_screen()
 
         elif user_input == "\x06": # C-f
@@ -122,6 +121,7 @@ def main(stdscr):
 
         elif user_input == "\x1f": # C-/
             app.toggle_view()
+            app.user_interface.page.selected.value = 0
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_UP:

@@ -27,8 +27,8 @@ DISPLAY = {
         False: "insensitive"
     },
     "match": {
-        0: "exact",
-        1: "regex"
+        False: "exact",
+        True: "regex"
     }
 }
 
@@ -72,7 +72,7 @@ class UserInterface:
         self.app.stdscr.clear()
         pyhstr_status = PYHSTR_STATUS.format(
             DISPLAY["view"][self.app.view],
-            DISPLAY["match"][self.app.match],
+            DISPLAY["match"][self.app.regex_match],
             DISPLAY["case"][self.app.case_sensitivity],
             self.app.user_interface.page.value if self.app.user_interface.page.total_pages() > 0 else 0,
             self.app.user_interface.page.total_pages()
