@@ -1,0 +1,15 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flip.buildapi"
+
+[tool.flit.metadata]
+module = "pyhstr"
+author = "xvm32"
+author-email = "dedmauz69@gmail.com"
+home-page = "https://github.com/xvm32/pyhstr"
+description-file = "README.md"
+requires-python = ">=3.6"
+keywords = "python history shell extension"
+requires = []
+dist-name = "pyhstr"
+

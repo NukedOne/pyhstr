@@ -5,14 +5,14 @@
 ### Installation
 
 ```bash
-git clone https://github.com/xvm32/pyhstr.git
-cd pyhstr
-python3 -m pip install -e .
+pip install pyhstr
 ```
 
 ### Usage
 
-You should make an alias:
+You need to import `hh` from `pyhstr` and then use `hh` to invoke the program. 
+
+Making an alias should be more convenient though:
 
 ```bash
 alias py='python3 -ic "from pyhstr import hh"'
