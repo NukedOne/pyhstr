@@ -14,7 +14,7 @@ COLORS = {
 }
 
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
-PYHSTR_STATUS = " - view:{} (C-/) - match: {} (C-e) - case:{} (C-t) - page {}/{} -"
+PYHSTR_STATUS = " - view:{} (C-/) - match:{} (C-e) - case:{} (C-t) - page {}/{} -"
 
 DISPLAY = {
     "view": {
