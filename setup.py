@@ -5,14 +5,14 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = 'pyhstr',
-    version = '0.0.1',
-    author = 'xvm32',
-    author_email = 'dedmauz69@gmail.com',
-    description = ('python shell history'),
-    license = 'MIT',
-    keywords = 'python shell history',
-    url = 'https://github.com/xvm32/pyhstr',
+    name='pyhstr',
+    version='0.0.2',
+    author='xvm32',
+    author_email='dedmauz69@gmail.com',
+    description=('python shell history'),
+    license='MIT',
+    keywords='python shell history',
+    url='https://github.com/xvm32/pyhstr',
     packages=['pyhstr'],
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
