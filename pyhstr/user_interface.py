@@ -108,17 +108,38 @@ class UserInterface:
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
 
+    def show_regex_error(self):
+        prompt = "Invalid regex. Try again."
+        self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
+        self._addstr(1, 0, prompt, COLORS["highlighted-red"])
+        self._addstr(0, 0, f"{sys.ps1}{self.search_string}", COLORS["normal"])
+
     def get_substring_indexes(self, entry):
         return [
             y for x in [
                 list(r) for r in [
                     range(start, end) for start, end in [
-                        m.span() for m in re.finditer(self.search_string, entry)
+                        m.span() for m in self.create_search_string_regex().finditer(entry)
                     ]
                 ]
             ] for y in x
         ]
 
+    def create_search_string_regex(self):
+        try:
+            if self.app.case_sensitivity:
+                if self.app.regex_match:
+                    return re.compile(self.search_string)
+                return re.compile(re.escape(self.search_string))
+            else:
+                if self.app.regex_match:
+                    return re.compile(self.search_string, re.IGNORECASE)
+                return re.compile(re.escape(self.search_string), re.IGNORECASE)
+        except re.error:
+            self.show_regex_error()
+            self.app.all_entries[self.app.view] = []
+            self.populate_screen()
+            return re.compile(r"this regex doesn't match anything^") # thanks Akuli
 
 class EntryCounter:
     def __init__(self, app):
@@ -128,7 +149,10 @@ class EntryCounter:
     def move(self, direction):
         page_size = self.app.user_interface.page.get_page_size()
         self.value += direction
-        self.value %= page_size
+        try:
+            self.value %= page_size
+        except ZeroDivisionError:
+            return
         if direction == 1:
             if self.value == 0:
                 self.app.user_interface.page.turn(1)

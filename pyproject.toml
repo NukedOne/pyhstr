@@ -1,7 +1,3 @@
-[build-system]
-requires = ["flit"]
-build-backend = "flip.buildapi"
-
 [tool.flit.metadata]
 module = "pyhstr"
 author = "xvm32"
