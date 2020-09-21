@@ -41,3 +41,11 @@ def remove_duplicates(thing):
         if thingy not in without_duplicates:
             without_duplicates.append(thingy)
     return without_duplicates
+
+
+def get_ipython_history():
+    import IPython
+    return [
+        entry for session_number, line_number, entry in
+        IPython.get_ipython().history_manager.search()
+    ]

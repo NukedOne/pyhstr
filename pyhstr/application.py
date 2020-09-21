@@ -2,25 +2,31 @@ import curses
 import os
 import re
 
-
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
-    echo, read, remove_duplicates, sort, write
+    echo, read, get_ipython_history,
+    remove_duplicates, sort, write
 )
 
+try:
+    import IPython
+    IS_IPYTHON = (IPython.get_ipython() is not None)
+except ImportError:
+    IS_IPYTHON = False
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
-FAVORITES = os.path.expanduser("~/.config/pyhstr/favorites")
-
+PYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/pyfavorites")
+IPYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/ipyfavorites")
 
 class App:
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
+        history = get_ipython_history() if IS_IPYTHON else read(PYTHON_HISTORY)
         self.all_entries = {
-            0: sort(read(PYTHON_HISTORY)),
-            1: sort(read(FAVORITES)),
-            2: remove_duplicates(read(PYTHON_HISTORY))
+            0: sort(history),
+            1: sort(read(IPYTHON_FAVORITES if IS_IPYTHON else PYTHON_FAVORITES),
+            2: remove_duplicates(history)
         }
         self.to_restore = self.all_entries.copy()
         self.case_sensitivity = False
@@ -66,7 +72,10 @@ class App:
             self.all_entries[1].append(command)
         else:
             self.all_entries[1].remove(command)
-        write(FAVORITES, self.all_entries[1])
+        write(
+            IPYTHON_FAVORITES if IS_IPYTHON else PYTHON_FAVORITES,
+            self.all_entries[1]
+        )
 
 
 def main(stdscr):
