@@ -1,6 +1,5 @@
 import curses
 import os
-import re
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
@@ -14,9 +13,11 @@ try:
 except ImportError:
     IS_IPYTHON = False
 
+
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
 PYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/pyfavorites")
 IPYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/ipyfavorites")
+
 
 class App:
     def __init__(self, stdscr):
@@ -25,7 +26,7 @@ class App:
         history = get_ipython_history() if IS_IPYTHON else read(PYTHON_HISTORY)
         self.all_entries = {
             0: sort(history),
-            1: sort(read(IPYTHON_FAVORITES if IS_IPYTHON else PYTHON_FAVORITES),
+            1: sort(read(IPYTHON_FAVORITES if IS_IPYTHON else PYTHON_FAVORITES)),
             2: remove_duplicates(history)
         }
         self.to_restore = self.all_entries.copy()
@@ -60,7 +61,7 @@ class App:
 
     def toggle_case(self):
         self.case_sensitivity = not self.case_sensitivity
-    
+
     def toggle_view(self):
         self.view = (self.view + 1) % 3
 

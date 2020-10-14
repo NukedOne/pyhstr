@@ -356,7 +356,8 @@ good-names=i,
            f,
            d,
            k,
-           v
+           v,
+           hh
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=no

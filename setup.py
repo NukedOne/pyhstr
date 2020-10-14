@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name='pyhstr',
-    version='0.0.3',
+    version='0.1.0',
     author='xvm32',
     author_email='dedmauz69@gmail.com',
     description=('python shell history'),
