@@ -89,6 +89,8 @@ def main(stdscr):
             user_input = app.stdscr.get_wch()
         except curses.error:
             continue
+        except KeyboardInterrupt:
+            break
 
         if user_input == "\x05": # C-e
             app.toggle_match()
