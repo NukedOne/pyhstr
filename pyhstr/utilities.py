@@ -1,7 +1,10 @@
 import collections
+import enum
 import fcntl
+import os
 import termios
 import pathlib
+import sys
 
 
 def sort(thing):
@@ -49,3 +52,20 @@ def get_ipython_history():
         entry for session_number, line_number, entry in
         IPython.get_ipython().history_manager.search()
     ]
+
+class Shell(enum.Enum):
+    STANDARD = "python"
+    IPYTHON = "ipython"
+    BPYTHON = "bpython"
+
+def detect_shell():
+    try:
+        import IPython
+        if IPython.get_ipython() is not None:
+            return Shell.IPYTHON
+    except ImportError:
+        pass
+    exe = sys.argv[0].split(os.sep)[-1]
+    if exe == Shell.BPYTHON.value:
+        return Shell.BPYTHON
+    return Shell.STANDARD

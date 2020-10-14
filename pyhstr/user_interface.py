@@ -18,7 +18,7 @@ PYHSTR_STATUS = " - view:{} (C-/) - match:{} (C-e) - case:{} (C-t) - page {}/{} 
 
 DISPLAY = {
     "view": {
-        0: "sorted", 
+        0: "sorted",
         1: "favorites",
         2: "history"
     },
@@ -101,7 +101,7 @@ class UserInterface:
 
         self._addstr(1, 0, PYHSTR_LABEL, COLORS["normal"])
         self._addstr(2, 0, pyhstr_status.ljust(curses.COLS), COLORS["highlighted-white"])
-        self._addstr(0, 0, f"{sys.ps1}{self.search_string}", COLORS["normal"])
+        self._addstr(0, 0, f"{getattr(sys, 'ps1', '>>> ')}{self.search_string}", COLORS["normal"])
 
     def prompt_for_deletion(self, command):
         prompt = f"Do you want to delete all occurences of {command}? y/n"
@@ -112,7 +112,7 @@ class UserInterface:
         prompt = "Invalid regex. Try again."
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
-        self._addstr(0, 0, f"{sys.ps1}{self.search_string}", COLORS["normal"])
+        self._addstr(0, 0, f"{getattr(sys, 'ps1', '>>> ')}{self.search_string}", COLORS["normal"])
 
     def get_substring_indexes(self, entry):
         return [
@@ -177,13 +177,13 @@ class Page:
         ...which is increment and wrap around.
 
         Since we want the value to start at 1, we should:
-        
+
         - subtract 1 from it when using it, because we want it to
         comply with the condition that page values start from 1,
         so we can use it in the modulo calculation (modulo needs
         zero-based indexing);
-        
-        - add 1 when setting it, because what modulo gives is 
+
+        - add 1 when setting it, because what modulo gives is
         zero-based indexing, and we want to match the pages start
         from 1 condition.
 
@@ -205,6 +205,6 @@ class Page:
         return self.app.all_entries[self.app.view][
             (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
         ]
-    
+
     def get_selected(self):
         return self.get_page()[self.selected.value]

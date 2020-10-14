@@ -3,36 +3,46 @@ import os
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
-    echo, read, get_ipython_history,
-    remove_duplicates, sort, write
+    echo, detect_shell, read, get_ipython_history,
+    remove_duplicates, sort, write, Shell
 )
 
-try:
-    import IPython
-    IS_IPYTHON = (IPython.get_ipython() is not None)
-except ImportError:
-    IS_IPYTHON = False
-
+SHELL = detect_shell()
 
 PYTHON_HISTORY = os.path.expanduser("~/.python_history")
+BPYTHON_HISTORY = os.path.expanduser("~/.pythonhist") # FIXME: get this programatically
 PYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/pyfavorites")
 IPYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/ipyfavorites")
-
+BPYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/bpyfavorites")
 
 class App:
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
-        history = get_ipython_history() if IS_IPYTHON else read(PYTHON_HISTORY)
+        history = self.get_history()
         self.all_entries = {
             0: sort(history),
-            1: sort(read(IPYTHON_FAVORITES if IS_IPYTHON else PYTHON_FAVORITES)),
+            1: sort(
+                read(
+                    IPYTHON_FAVORITES if SHELL == Shell.IPYTHON else
+                    BPYTHON_FAVORITES if SHELL == Shell.BPYTHON else
+                    PYTHON_FAVORITES
+                )
+            ),
             2: remove_duplicates(history)
         }
         self.to_restore = self.all_entries.copy()
         self.case_sensitivity = False
         self.view = 0 # 0 = sorted; 1 = favorites; 2 = history
         self.regex_match = False
+
+    @staticmethod
+    def get_history():
+        if SHELL == Shell.IPYTHON:
+            return get_ipython_history()
+        elif SHELL == SHELL.BPYTHON:
+            return read(BPYTHON_HISTORY)
+        return read(PYTHON_HISTORY)
 
     def search(self):
         self.user_interface.page.selected.value = 0
@@ -74,7 +84,9 @@ class App:
         else:
             self.all_entries[1].remove(command)
         write(
-            IPYTHON_FAVORITES if IS_IPYTHON else PYTHON_FAVORITES,
+            IPYTHON_FAVORITES if SHELL == Shell.IPYTHON else
+            BPYTHON_FAVORITES if SHELL == Shell.BPYTHON else
+            PYTHON_FAVORITES,
             self.all_entries[1]
         )
 

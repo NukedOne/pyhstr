@@ -146,7 +146,9 @@ disable=missing-module-docstring,
         xreadlines-attribute,
         deprecated-sys-function,
         exception-escape,
-        comprehension-escape
+        comprehension-escape,
+        import-error,
+        import-outside-toplevel
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -357,7 +359,8 @@ good-names=i,
            d,
            k,
            v,
-           hh
+           hh,
+           e
 
 # Include a hint for the correct naming format with invalid-name.
 include-naming-hint=no
