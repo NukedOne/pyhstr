@@ -6,12 +6,12 @@ def read(fname):
 
 setup(
     name='pyhstr',
-    version='0.1.2',
+    version='0.1.3',
     author='xvm32',
     author_email='dedmauz69@gmail.com',
     description=('python shell history'),
     license='MIT',
-    keywords='python shell history',
+    keywords='python ipython bpython shell history',
     url='https://github.com/xvm32/pyhstr',
     packages=['pyhstr'],
     long_description=read('README.md'),
