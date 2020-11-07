@@ -1,9 +1,8 @@
 import collections
 import enum
 import fcntl
-import os
-import termios
 import pathlib
+import termios
 import sys
 
 
@@ -65,7 +64,7 @@ def detect_shell():
             return Shell.IPYTHON
     except ImportError:
         pass
-    exe = sys.argv[0].split(os.sep)[-1]
+    exe = pathlib.Path(sys.argv[0]).name
     if exe == Shell.BPYTHON.value:
         return Shell.BPYTHON
     return Shell.STANDARD
