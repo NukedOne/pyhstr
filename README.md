@@ -1,24 +1,36 @@
 # pyhstr
 
-**pyhstr** is history suggest box for the standard Python shell.
-It also works with IPython and bpython. Inspired by hstr.
+Inspired by hstr, **pyhstr** is a history suggest box that lets you quickly search, navigate, and manage your Python shell history. At this point, it supports the standard Python shell, IPython, and bpython. The plan is to support ptpython as well, but some help is needed for that to happen (see [issue #7](https://github.com/xvm32/pyhstr/issues/7)).
 
-### Installation
+## Installation
 
-```bash
+
+```
 pip install pyhstr
 ```
 
-### Usage
+## Usage
 
-This currently works for the standard and IPython shells.
-In standard shell and bpython, just first import `hh` from `pyhstr`, and then use `hh` to invoke the program. 
-In IPython, it's enough to import `pyhstr` and then use `%hh`.
+The **standard** shell and **bpython**:
 
-Making an alias should be more convenient though:
+  ```python
+  >>> from pyhstr import hh
+  >>> hh
+  ```
+
+**IPython**:
+
+  ```ipython
+  In [1]: import pyhstr
+  In [2]: %hh
+  ```
+
+Making an alias should be more convenient though, for example:
 
 ```bash
 alias py='python3 -ic "from pyhstr import hh"'
 ```
+
+## Screencast
 
 ![screenshot](pyhstr.gif)

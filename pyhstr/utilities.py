@@ -8,9 +8,7 @@ import sys
 
 def sort(thing):
     return [
-        x[0] for x in sorted(
-            collections.Counter(thing).items(), key=lambda y: -y[1]
-        )
+        x for x, _ in collections.Counter(thing).most_common()
     ]
 
 
@@ -22,11 +20,8 @@ def write(path, thing):
 
 def read(path):
     try:
-        history = []
         with open(path, "r") as f:
-            for command in f:
-                history.append(command.strip())
-        return history
+            return [command.strip() for command in f]
     except FileNotFoundError as e:
         pathlib.Path(e.filename).touch()
 
@@ -38,11 +33,7 @@ def echo(command):
 
 
 def remove_duplicates(thing):
-    without_duplicates = []
-    for thingy in thing:
-        if thingy not in without_duplicates:
-            without_duplicates.append(thingy)
-    return without_duplicates
+    return list(dict.fromkeys(thing))
 
 
 def get_ipython_history():
@@ -52,10 +43,12 @@ def get_ipython_history():
         IPython.get_ipython().history_manager.search()
     ]
 
+
 class Shell(enum.Enum):
     STANDARD = "python"
     IPYTHON = "ipython"
     BPYTHON = "bpython"
+
 
 def detect_shell():
     try:

@@ -1,5 +1,5 @@
 import curses
-import os
+from pathlib import Path
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
@@ -9,11 +9,25 @@ from pyhstr.utilities import (
 
 SHELL = detect_shell()
 
-PYTHON_HISTORY = os.path.expanduser("~/.python_history")
-BPYTHON_HISTORY = os.path.expanduser("~/.pythonhist") # FIXME: get this programatically
-PYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/pyfavorites")
-IPYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/ipyfavorites")
-BPYTHON_FAVORITES = os.path.expanduser("~/.config/pyhstr/bpyfavorites")
+PYTHON_HISTORY = Path("~/.python_history").expanduser()
+BPYTHON_HISTORY = Path("~/.pythonhist").expanduser() # FIXME: get this programatically
+PYTHON_FAVORITES = Path("~/.config/pyhstr/pyfavorites").expanduser()
+IPYTHON_FAVORITES = Path("~/.config/pyhstr/ipyfavorites").expanduser()
+BPYTHON_FAVORITES = Path("~/.config/pyhstr/bpyfavorites").expanduser()
+
+FAVORITES_MAP = {
+    Shell.IPYTHON: IPYTHON_FAVORITES,
+    Shell.BPYTHON: BPYTHON_FAVORITES,
+    Shell.STANDARD: PYTHON_FAVORITES
+}
+
+BINDINGS = {
+    curses.KEY_UP: -1,
+    curses.KEY_DOWN: 1,
+    curses.KEY_PPAGE: -1,
+    curses.KEY_NPAGE: 1
+}
+
 
 class App:
     def __init__(self, stdscr):
@@ -22,13 +36,7 @@ class App:
         history = self.get_history()
         self.all_entries = {
             0: sort(history),
-            1: sort(
-                read(
-                    IPYTHON_FAVORITES if SHELL == Shell.IPYTHON else
-                    BPYTHON_FAVORITES if SHELL == Shell.BPYTHON else
-                    PYTHON_FAVORITES
-                )
-            ),
+            1: sort(read(FAVORITES_MAP[SHELL])),
             2: remove_duplicates(history)
         }
         self.to_restore = self.all_entries.copy()
@@ -83,15 +91,10 @@ class App:
             self.all_entries[1].append(command)
         else:
             self.all_entries[1].remove(command)
-        write(
-            IPYTHON_FAVORITES if SHELL == Shell.IPYTHON else
-            BPYTHON_FAVORITES if SHELL == Shell.BPYTHON else
-            PYTHON_FAVORITES,
-            self.all_entries[1]
-        )
+        write(FAVORITES_MAP[SHELL], self.all_entries[1])
 
 
-def main(stdscr):
+def main(stdscr): # pylint: disable=too-many-statements
     app = App(stdscr)
     app.user_interface.init_color_pairs()
     app.user_interface.populate_screen()
@@ -136,20 +139,12 @@ def main(stdscr):
             app.user_interface.page.selected.value = 0
             app.user_interface.populate_screen()
 
-        elif user_input == curses.KEY_UP:
-            app.user_interface.page.selected.move(-1)
+        elif user_input in {curses.KEY_UP, curses.KEY_DOWN}:
+            app.user_interface.page.selected.move(BINDINGS[user_input])
             app.user_interface.populate_screen()
 
-        elif user_input == curses.KEY_DOWN:
-            app.user_interface.page.selected.move(1)
-            app.user_interface.populate_screen()
-
-        elif user_input == curses.KEY_NPAGE:
-            app.user_interface.page.turn(1)
-            app.user_interface.populate_screen()
-
-        elif user_input == curses.KEY_PPAGE:
-            app.user_interface.page.turn(-1)
+        elif user_input in {curses.KEY_NPAGE, curses.KEY_PPAGE}:
+            app.user_interface.page.turn(BINDINGS[user_input])
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_BACKSPACE:
