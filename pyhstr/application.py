@@ -15,10 +15,19 @@ PYTHON_FAVORITES = Path("~/.config/pyhstr/pyfavorites").expanduser()
 IPYTHON_FAVORITES = Path("~/.config/pyhstr/ipyfavorites").expanduser()
 BPYTHON_FAVORITES = Path("~/.config/pyhstr/bpyfavorites").expanduser()
 
-FAVORITES_MAP = {
-    Shell.IPYTHON: IPYTHON_FAVORITES,
-    Shell.BPYTHON: BPYTHON_FAVORITES,
-    Shell.STANDARD: PYTHON_FAVORITES
+SHELL_MAP = {
+    Shell.IPYTHON: {
+        "hist": "",
+        "fav": IPYTHON_FAVORITES
+    },
+    Shell.BPYTHON: {
+        "hist": BPYTHON_HISTORY,
+        "fav": BPYTHON_FAVORITES
+    },
+    Shell.STANDARD: {
+        "hist": PYTHON_HISTORY,
+        "fav": PYTHON_FAVORITES
+    }
 }
 
 BINDINGS = {
@@ -33,19 +42,18 @@ class App:
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
-        history = self.get_history()
+        self.raw_history = self.get_history()
         self.all_entries = {
-            0: sort(history),
-            1: sort(read(FAVORITES_MAP[SHELL])),
-            2: remove_duplicates(history)
+            0: sort(self.raw_history),
+            1: sort(read(SHELL_MAP[SHELL]["fav"])),
+            2: remove_duplicates(self.raw_history)
         }
         self.to_restore = self.all_entries.copy()
         self.case_sensitivity = False
-        self.view = 0 # 0 = sorted; 1 = favorites; 2 = history
+        self.view = 0 # 0 = sorted; 1 = favorites; 2 = deduped
         self.regex_match = False
 
-    @staticmethod
-    def get_history():
+    def get_history(self):
         if SHELL == Shell.IPYTHON:
             return get_ipython_history()
         elif SHELL == SHELL.BPYTHON:
@@ -68,10 +76,43 @@ class App:
         answer = self.stdscr.getch()
 
         if answer == ord("y"):
-            for cmd in self.all_entries[2]:
-                if cmd == command:
-                    self.all_entries[2].remove(cmd)
-            write(PYTHON_HISTORY, self.all_entries[2])
+
+            if SHELL == Shell.STANDARD:
+                import readline
+
+                readline_history = []
+
+                for i in range(1, readline.get_current_history_length() + 1):
+                    readline_history.append(readline.get_history_item(i))
+
+                cmd_indexes = [
+                    i for i, cmd in enumerate(readline_history)
+                    if cmd == command
+                ]
+
+                for cmd_idx in reversed(cmd_indexes):
+                    readline.remove_history_item(cmd_idx)
+
+                readline.write_history_file(SHELL_MAP[SHELL]["hist"])
+
+            elif SHELL == Shell.IPYTHON:
+                import IPython
+                IPython.get_ipython().history_manager.db.execute(
+                    "DELETE FROM history WHERE source=(?)", (command,)
+                )
+
+            elif SHELL == Shell.BPYTHON:
+                self.raw_history = [cmd for cmd in self.raw_history if cmd != command]
+                write(SHELL_MAP[SHELL]["hist"], self.raw_history)
+
+            else:
+                pass # future implementations
+
+            for view in self.all_entries.values():
+                for cmd in view:
+                    if cmd == command:
+                        view.remove(cmd)
+
             self.user_interface.populate_screen()
 
         elif answer == ord("n"):
@@ -91,7 +132,7 @@ class App:
             self.all_entries[1].append(command)
         else:
             self.all_entries[1].remove(command)
-        write(FAVORITES_MAP[SHELL], self.all_entries[1])
+        write(SHELL_MAP[SHELL]["fav"], self.all_entries[1])
 
 
 def main(stdscr): # pylint: disable=too-many-statements
