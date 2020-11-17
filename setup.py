@@ -13,7 +13,7 @@ setup(
     license='MIT',
     keywords='python ipython bpython shell history',
     url='https://github.com/xvm32/pyhstr',
-    packages=['pyhstr'],
+    packages=['pyhstr', 'tests'],
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     classifiers=[
