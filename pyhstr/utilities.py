@@ -33,7 +33,7 @@ def echo(command):
 
 
 def remove_duplicates(thing):
-    return list(dict.fromkeys(thing))
+    return list(collections.OrderedDict.fromkeys(thing))
 
 
 def get_ipython_history():
