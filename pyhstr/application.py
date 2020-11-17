@@ -3,14 +3,14 @@ from pathlib import Path
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
-    echo, detect_shell, read, get_ipython_history,
-    remove_duplicates, sort, write, Shell
+    echo, detect_shell, read, get_bpython_history_path,
+    get_ipython_history, remove_duplicates, sort, write, Shell
 )
 
 SHELL = detect_shell()
 
 PYTHON_HISTORY = Path("~/.python_history").expanduser()
-BPYTHON_HISTORY = Path("~/.pythonhist").expanduser() # FIXME: get this programatically
+BPYTHON_HISTORY = get_bpython_history_path().expanduser()
 PYTHON_FAVORITES = Path("~/.config/pyhstr/pyfavorites").expanduser()
 IPYTHON_FAVORITES = Path("~/.config/pyhstr/ipyfavorites").expanduser()
 BPYTHON_FAVORITES = Path("~/.config/pyhstr/bpyfavorites").expanduser()

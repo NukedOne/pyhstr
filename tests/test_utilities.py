@@ -1,8 +1,10 @@
 import collections
+import pathlib
 import random
 import string
 import timeit
-from pyhstr.utilities import remove_duplicates, sort
+
+from pyhstr.utilities import get_bpython_history_path, remove_duplicates, sort
 
 
 CHARS = string.ascii_letters + string.digits + r"!@#$%^&*()_+,./;'\\[]<>?:\"|{}"
@@ -25,9 +27,14 @@ def old_sort(thing):
 
 
 def generate_random_history():
-    return ["".join([
-            random.choice(CHARS) for _ in range(random.randint(40, 80))
-        ]) for _ in range(100)
+    return [
+        "".join(
+            [
+                random.choice(CHARS)
+                for _ in range(random.randint(40, 80))
+            ]
+        )
+        for _ in range(100)
     ]
 
 
@@ -54,3 +61,7 @@ def test_new_remove_duplicates_is_faster_than_old():
         number=1000
     )
     assert time_new < time_old
+
+
+def test_get_default_bpython_history_path():
+    assert get_bpython_history_path() == pathlib.Path("~/.pythonhist").expanduser()

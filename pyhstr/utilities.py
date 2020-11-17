@@ -44,6 +44,16 @@ def get_ipython_history():
     ]
 
 
+def get_bpython_history_path():
+    try:
+        from bpython.config import loadini, Struct, get_config_home
+        config = Struct()
+        loadini(config, pathlib.Path(get_config_home()).expanduser() / "config")
+        return pathlib.Path(config.hist_file)
+    except ImportError:
+        pass
+
+
 class Shell(enum.Enum):
     STANDARD = "python"
     IPYTHON = "ipython"
