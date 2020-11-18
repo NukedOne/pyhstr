@@ -9,3 +9,21 @@ keywords = "python history shell extension"
 requires = []
 dist-name = "pyhstr"
 
+
+[tool.poetry]
+name = "pyhstr"
+version = "0.2.0"
+description = "History suggest box for the standard Python shell, IPython, and bpython"
+authors = ["xvm32 <xvm32@users.noreply.github.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.1.2"
+poetry = "^1.1.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

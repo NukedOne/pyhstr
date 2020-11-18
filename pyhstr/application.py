@@ -9,28 +9,21 @@ from pyhstr.utilities import (
 
 SHELL = detect_shell()
 
-PYTHON_HISTORY = Path("~/.python_history").expanduser()
-BPYTHON_HISTORY = get_bpython_history_path().expanduser()
-PYTHON_FAVORITES = Path("~/.config/pyhstr/pyfavorites").expanduser()
-IPYTHON_FAVORITES = Path("~/.config/pyhstr/ipyfavorites").expanduser()
-BPYTHON_FAVORITES = Path("~/.config/pyhstr/bpyfavorites").expanduser()
-
-SHELL_MAP = {
+SHELLS = {
     Shell.IPYTHON: {
-        "hist": "",
-        "fav": IPYTHON_FAVORITES
+        "fav": Path("~/.config/pyhstr/ipython_favorites").expanduser()
     },
     Shell.BPYTHON: {
-        "hist": BPYTHON_HISTORY,
-        "fav": BPYTHON_FAVORITES
+        "hist": get_bpython_history_path().expanduser(),
+        "fav": Path("~/.config/pyhstr/bpython_favorites").expanduser()
     },
     Shell.STANDARD: {
-        "hist": PYTHON_HISTORY,
-        "fav": PYTHON_FAVORITES
+        "hist": Path("~/.python_history").expanduser(),
+        "fav": Path("~/.config/pyhstr/python_favorites").expanduser()
     }
 }
 
-BINDINGS = {
+KEY_BINDINGS = {
     curses.KEY_UP: -1,
     curses.KEY_DOWN: 1,
     curses.KEY_PPAGE: -1,
@@ -39,26 +32,25 @@ BINDINGS = {
 
 
 class App:
+
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
         self.raw_history = self.get_history()
         self.all_entries = {
-            0: sort(self.raw_history),
-            1: sort(read(SHELL_MAP[SHELL]["fav"])),
+            0: sort(remove_duplicates(self.raw_history)),
+            1: sort(read(SHELLS[SHELL]["fav"])),
             2: remove_duplicates(self.raw_history)
         }
         self.to_restore = self.all_entries.copy()
+        self.regex_mode = False
         self.case_sensitivity = False
-        self.view = 0 # 0 = sorted; 1 = favorites; 2 = deduped
-        self.regex_match = False
+        self.view = 0 # 0 = sorted and deduped; 1 = sorted favorites; 2 = deduped
 
     def get_history(self):
         if SHELL == Shell.IPYTHON:
             return get_ipython_history()
-        elif SHELL == SHELL.BPYTHON:
-            return read(BPYTHON_HISTORY)
-        return read(PYTHON_HISTORY)
+        return read(SHELLS[SHELL]["hist"])
 
     def search(self):
         self.user_interface.page.selected.value = 0
@@ -93,7 +85,7 @@ class App:
                 for cmd_idx in reversed(cmd_indexes):
                     readline.remove_history_item(cmd_idx)
 
-                readline.write_history_file(SHELL_MAP[SHELL]["hist"])
+                readline.write_history_file(SHELLS[SHELL]["hist"])
 
             elif SHELL == Shell.IPYTHON:
                 import IPython
@@ -103,7 +95,7 @@ class App:
 
             elif SHELL == Shell.BPYTHON:
                 self.raw_history = [cmd for cmd in self.raw_history if cmd != command]
-                write(SHELL_MAP[SHELL]["hist"], self.raw_history)
+                write(SHELLS[SHELL]["hist"], self.raw_history)
 
             else:
                 pass # future implementations
@@ -113,26 +105,27 @@ class App:
                     if cmd == command:
                         view.remove(cmd)
 
+            self.to_restore = self.all_entries.copy()
             self.user_interface.populate_screen()
 
         elif answer == ord("n"):
             self.user_interface.populate_screen()
-
-    def toggle_case(self):
-        self.case_sensitivity = not self.case_sensitivity
-
-    def toggle_view(self):
-        self.view = (self.view + 1) % 3
-
-    def toggle_match(self):
-        self.regex_match = not self.regex_match
 
     def add_to_or_remove_from_favorites(self, command):
         if command not in self.all_entries[1]:
             self.all_entries[1].append(command)
         else:
             self.all_entries[1].remove(command)
-        write(SHELL_MAP[SHELL]["fav"], self.all_entries[1])
+        write(SHELLS[SHELL]["fav"], self.all_entries[1])
+
+    def toggle_regex_mode(self):
+        self.regex_mode = not self.regex_mode
+
+    def toggle_case(self):
+        self.case_sensitivity = not self.case_sensitivity
+
+    def toggle_view(self):
+        self.view = (self.view + 1) % 3
 
 
 def main(stdscr): # pylint: disable=too-many-statements
@@ -149,7 +142,7 @@ def main(stdscr): # pylint: disable=too-many-statements
             break
 
         if user_input == "\x05": # C-e
-            app.toggle_match()
+            app.toggle_regex_mode()
             app.user_interface.page.selected.value = 0
             app.user_interface.populate_screen()
 
@@ -181,11 +174,11 @@ def main(stdscr): # pylint: disable=too-many-statements
             app.user_interface.populate_screen()
 
         elif user_input in {curses.KEY_UP, curses.KEY_DOWN}:
-            app.user_interface.page.selected.move(BINDINGS[user_input])
+            app.user_interface.page.selected.move(KEY_BINDINGS[user_input])
             app.user_interface.populate_screen()
 
         elif user_input in {curses.KEY_NPAGE, curses.KEY_PPAGE}:
-            app.user_interface.page.turn(BINDINGS[user_input])
+            app.user_interface.page.turn(KEY_BINDINGS[user_input])
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_BACKSPACE:

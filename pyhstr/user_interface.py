@@ -6,15 +6,17 @@ import sys
 COLORS = {
     # yet to be initialized
     "normal": None,
-    "white": None,
     "highlighted-white": None,
     "highlighted-green": None,
     "highlighted-red": None,
+    "white": None,
     "bold-red": None
 }
 
 PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
-PYHSTR_STATUS = " - view:{} (C-/) - match:{} (C-e) - case:{} (C-t) - page {}/{} -"
+PYHSTR_STATUS = "- view:{} (C-/) - match:{} (C-e) - case:{} (C-t) - page {}/{} -"
+
+PS1 = getattr(sys, 'ps1', '>>> ')
 
 DISPLAY = {
     "view": {
@@ -34,6 +36,7 @@ DISPLAY = {
 
 
 class UserInterface:
+
     def __init__(self, app):
         self.app = app
         self.page = Page(self.app)
@@ -55,53 +58,68 @@ class UserInterface:
 
     @staticmethod
     def init_color_pairs():
-        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(2, 0, 15)
-        curses.init_pair(3, 15, curses.COLOR_GREEN)
-        curses.init_pair(4, 15, curses.COLOR_RED)
-        curses.init_pair(5, 15, 0)
-        curses.init_pair(6, curses.COLOR_RED, 0)
-        COLORS["normal"] = curses.color_pair(1)
-        COLORS["highlighted-white"] = curses.color_pair(2)
-        COLORS["highlighted-green"] = curses.color_pair(3)
-        COLORS["highlighted-red"] = curses.color_pair(4)
-        COLORS["white"] = curses.color_pair(5)
-        COLORS["bold-red"] = curses.color_pair(6) | curses.A_BOLD
+        mapping = {
+            1: [curses.COLOR_WHITE, curses.COLOR_BLACK],
+            2: [0, 15],
+            3: [15, curses.COLOR_GREEN],
+            4: [15, curses.COLOR_RED],
+            5: [15, 0],
+            6: [curses.COLOR_RED, 0, curses.A_BOLD]
+        }
+
+        for idx, color in enumerate(COLORS, 1):
+            curses.init_pair(idx, mapping[idx][0], mapping[idx][1])
+            if len(mapping[idx]) > 2:
+                COLORS[color] = curses.color_pair(idx) | mapping[idx][2]
+            else:
+                COLORS[color] = curses.color_pair(idx)
 
     def populate_screen(self):
         self.app.stdscr.clear()
+
         pyhstr_status = PYHSTR_STATUS.format(
             DISPLAY["view"][self.app.view],
-            DISPLAY["match"][self.app.regex_match],
+            DISPLAY["match"][self.app.regex_mode],
             DISPLAY["case"][self.app.case_sensitivity],
-            self.app.user_interface.page.value if self.app.user_interface.page.total_pages() > 0 else 0,
+            (self.app.user_interface.page.value
+            if self.app.user_interface.page.total_pages() > 0 else 0),
             self.app.user_interface.page.total_pages()
-        )
+        ).ljust(curses.COLS - 1)
+
         entries = self.page.get_page()
+
         for index, entry in enumerate(entries):
             # print everything first (normal),
             # then print found matches (in red)
             # then print favorites (white)
             # then print selected on top of all that (green)
             try:
-                self._addstr(index + 3, 0, f" {entry.ljust(curses.COLS - 1)}", COLORS["normal"])
+                padded_entry = entry.ljust(curses.COLS - 1)
+                self._addstr(index + 3, 1, padded_entry, COLORS["normal"])
                 substring_indexes = self.get_substring_indexes(entry)
+
                 if substring_indexes:
                     for idx, letter in enumerate(entry):
                         if idx in substring_indexes:
                             self.app.stdscr.attron(COLORS["bold-red"])
                             self.app.stdscr.addch(index + 3, idx + 1, letter)
                             self.app.stdscr.attroff(COLORS["bold-red"])
+
                 if entry in self.app.all_entries[1]: # in favorites
-                    self._addstr(index + 3, 0, f" {entry.ljust(curses.COLS - 1)}", COLORS["white"])
+                    self._addstr(index + 3, 1, padded_entry, COLORS["white"])
+
                 if index == self.app.user_interface.page.selected.value:
-                    self._addstr(index + 3, 0, f" {entry.ljust(curses.COLS - 1)}", COLORS["highlighted-green"])
+                    self._addstr(
+                        index + 3, 1,
+                        padded_entry,
+                        COLORS["highlighted-green"]
+                    )
             except curses.error:
                 pass
 
         self._addstr(1, 0, PYHSTR_LABEL, COLORS["normal"])
-        self._addstr(2, 0, pyhstr_status.ljust(curses.COLS), COLORS["highlighted-white"])
-        self._addstr(0, 0, f"{getattr(sys, 'ps1', '>>> ')}{self.search_string}", COLORS["normal"])
+        self._addstr(2, 1, pyhstr_status, COLORS["highlighted-white"])
+        self._addstr(0, 0, PS1 + self.search_string, COLORS["normal"])
 
     def prompt_for_deletion(self, command):
         prompt = f"Do you want to delete all occurences of {command}? y/n"
@@ -112,7 +130,7 @@ class UserInterface:
         prompt = "Invalid regex. Try again."
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
-        self._addstr(0, 0, f"{getattr(sys, 'ps1', '>>> ')}{self.search_string}", COLORS["normal"])
+        self._addstr(0, 0, PS1 + self.search_string, COLORS["normal"])
 
     def get_substring_indexes(self, entry):
         return [
@@ -124,11 +142,11 @@ class UserInterface:
     def create_search_string_regex(self):
         try:
             if self.app.case_sensitivity:
-                if self.app.regex_match:
+                if self.app.regex_mode:
                     return re.compile(self.search_string)
                 return re.compile(re.escape(self.search_string))
             else:
-                if self.app.regex_match:
+                if self.app.regex_mode:
                     return re.compile(self.search_string, re.IGNORECASE)
                 return re.compile(re.escape(self.search_string), re.IGNORECASE)
         except re.error:
@@ -137,7 +155,9 @@ class UserInterface:
             self.populate_screen()
             return re.compile(r"this regex doesn't match anything^") # thanks Akuli
 
+
 class EntryCounter:
+
     def __init__(self, app):
         self.value = 0
         self.app = app
@@ -160,6 +180,7 @@ class EntryCounter:
 
 
 class Page:
+
     def __init__(self, app):
         self.value = 1
         self.app = app
