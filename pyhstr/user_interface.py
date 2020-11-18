@@ -156,7 +156,7 @@ class UserInterface:
             return re.compile(r"this regex doesn't match anything^") # thanks Akuli
 
 
-class EntryCounter:
+class EntryCounter: # pylint: disable=too-few-public-methods
 
     def __init__(self, app):
         self.value = 0

@@ -48,4 +48,4 @@ def test_new_remove_duplicates_does_not_break_removing_duplicates():
 
 
 def test_get_default_bpython_history_path():
-    assert get_bpython_history_path() == pathlib.Path("~/.pythonhist").expanduser()
+    assert get_bpython_history_path() in {pathlib.Path("~/.pythonhist").expanduser(), None}

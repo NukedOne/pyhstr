@@ -1,5 +1,6 @@
 import curses
 from pathlib import Path
+from typing import Dict, List, Optional
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
@@ -7,14 +8,16 @@ from pyhstr.utilities import (
     get_ipython_history, remove_duplicates, sort, write, Shell
 )
 
+
 SHELL = detect_shell()
 
-SHELLS = {
+SHELLS: Dict[Shell, Dict[str, Optional[Path]]] = {
     Shell.IPYTHON: {
+        "hist": None,
         "fav": Path("~/.config/pyhstr/ipython_favorites").expanduser()
     },
     Shell.BPYTHON: {
-        "hist": get_bpython_history_path().expanduser(),
+        "hist": get_bpython_history_path(),
         "fav": Path("~/.config/pyhstr/bpython_favorites").expanduser()
     },
     Shell.STANDARD: {
@@ -47,12 +50,12 @@ class App:
         self.case_sensitivity = False
         self.view = 0 # 0 = sorted and deduped; 1 = sorted favorites; 2 = deduped
 
-    def get_history(self):
+    def get_history(self) -> List[str]: # pylint: disable=no-self-use
         if SHELL == Shell.IPYTHON:
             return get_ipython_history()
         return read(SHELLS[SHELL]["hist"])
 
-    def search(self):
+    def search(self) -> None:
         self.user_interface.page.selected.value = 0
         self.user_interface.page.value = 1
 
@@ -63,7 +66,7 @@ class App:
 
         self.user_interface.populate_screen()
 
-    def delete_from_history(self, command):
+    def delete_from_history(self, command: str) -> None:
         self.user_interface.prompt_for_deletion(command)
         answer = self.stdscr.getch()
 
@@ -85,7 +88,7 @@ class App:
                 for cmd_idx in reversed(cmd_indexes):
                     readline.remove_history_item(cmd_idx)
 
-                readline.write_history_file(SHELLS[SHELL]["hist"])
+                readline.write_history_file(str(SHELLS[SHELL]["hist"]))
 
             elif SHELL == Shell.IPYTHON:
                 import IPython
@@ -111,24 +114,24 @@ class App:
         elif answer == ord("n"):
             self.user_interface.populate_screen()
 
-    def add_to_or_remove_from_favorites(self, command):
+    def add_to_or_remove_from_favorites(self, command: str):
         if command not in self.all_entries[1]:
             self.all_entries[1].append(command)
         else:
             self.all_entries[1].remove(command)
         write(SHELLS[SHELL]["fav"], self.all_entries[1])
 
-    def toggle_regex_mode(self):
+    def toggle_regex_mode(self) -> None:
         self.regex_mode = not self.regex_mode
 
-    def toggle_case(self):
+    def toggle_case(self) -> None:
         self.case_sensitivity = not self.case_sensitivity
 
-    def toggle_view(self):
+    def toggle_view(self) -> None:
         self.view = (self.view + 1) % 3
 
 
-def main(stdscr): # pylint: disable=too-many-statements
+def main(stdscr) -> None: # pylint: disable=too-many-statements
     app = App(stdscr)
     app.user_interface.init_color_pairs()
     app.user_interface.populate_screen()

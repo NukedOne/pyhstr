@@ -1,0 +1,3 @@
+[run]
+omit =
+    */pyhstr/__init__.py
