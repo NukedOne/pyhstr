@@ -1,9 +1,10 @@
 import curses
 import re
 import sys
+from typing import Dict, List, Optional, Union
 
 
-COLORS = {
+COLORS: Dict[str, Optional[int]] = {
     # yet to be initialized
     "normal": None,
     "highlighted-white": None,
@@ -18,7 +19,7 @@ PYHSTR_STATUS = "- view:{} (C-/) - match:{} (C-e) - case:{} (C-t) - page {}/{} -
 
 PS1 = getattr(sys, 'ps1', '>>> ')
 
-DISPLAY = {
+DISPLAY: Dict[str, Dict[Union[int, bool], str]] = {
     "view": {
         0: "sorted",
         1: "favorites",
@@ -42,11 +43,13 @@ class UserInterface:
         self.page = Page(self.app)
         self.search_string = ""
 
-    def _addstr(self, y_coord, x_coord, text, color_info):
+    def _addstr(self, y_coord: int, x_coord: int, text: str, color_info: Optional[int]) -> None:
         """
         Works around curses' limitation of drawing at bottom right corner
         of the screen, as seen on https://stackoverflow.com/q/36387625
         """
+        screen_height: int
+        screen_width: int
         screen_height, screen_width = self.app.stdscr.getmaxyx()
         if x_coord + len(text) == screen_width and y_coord == screen_height-1:
             try:
@@ -57,8 +60,8 @@ class UserInterface:
             self.app.stdscr.addstr(y_coord, x_coord, text, color_info)
 
     @staticmethod
-    def init_color_pairs():
-        mapping = {
+    def init_color_pairs() -> None:
+        mapping: Dict[int, List[int]] = {
             1: [curses.COLOR_WHITE, curses.COLOR_BLACK],
             2: [0, 15],
             3: [15, curses.COLOR_GREEN],
@@ -74,7 +77,7 @@ class UserInterface:
             else:
                 COLORS[color] = curses.color_pair(idx)
 
-    def populate_screen(self):
+    def populate_screen(self) -> None:
         self.app.stdscr.clear()
 
         pyhstr_status = PYHSTR_STATUS.format(
@@ -121,25 +124,25 @@ class UserInterface:
         self._addstr(2, 1, pyhstr_status, COLORS["highlighted-white"])
         self._addstr(0, 0, PS1 + self.search_string, COLORS["normal"])
 
-    def prompt_for_deletion(self, command):
+    def prompt_for_deletion(self, command: str) -> None:
         prompt = f"Do you want to delete all occurences of {command}? y/n"
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
 
-    def show_regex_error(self):
+    def show_regex_error(self) -> None:
         prompt = "Invalid regex. Try again."
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 0, prompt, COLORS["highlighted-red"])
         self._addstr(0, 0, PS1 + self.search_string, COLORS["normal"])
 
-    def get_substring_indexes(self, entry):
+    def get_substring_indexes(self, entry: str) -> List[int]:
         return [
             index
             for m in self.create_search_string_regex().finditer(entry)
             for index in range(m.start(), m.end())
         ]
 
-    def create_search_string_regex(self):
+    def create_search_string_regex(self) -> re.Pattern:
         try:
             if self.app.case_sensitivity:
                 if self.app.regex_mode:
@@ -162,13 +165,13 @@ class EntryCounter: # pylint: disable=too-few-public-methods
         self.value = 0
         self.app = app
 
-    def move(self, direction):
+    def move(self, direction: int) -> None:
         page_size = self.app.user_interface.page.get_page_size()
         self.value += direction
         try:
             self.value %= page_size
         except ZeroDivisionError:
-            return
+            return None
         if direction == 1:
             if self.value == 0:
                 self.app.user_interface.page.turn(1)
@@ -186,7 +189,7 @@ class Page:
         self.app = app
         self.selected = EntryCounter(self.app)
 
-    def turn(self, direction):
+    def turn(self, direction: int) -> None:
         """
         Paging starts from 1 but we want it to start at 0,
         because that's how our calculation with modulo works.
@@ -216,16 +219,16 @@ class Page:
         """
         self.value = ((self.value - 1 + direction) % self.total_pages()) + 1
 
-    def total_pages(self):
+    def total_pages(self) -> int:
         return len(range(0, len(self.app.all_entries[self.app.view]), curses.LINES - 3))
 
-    def get_page_size(self):
+    def get_page_size(self) -> int:
         return len(self.get_page())
 
-    def get_page(self):
+    def get_page(self) -> List[str]:
         return self.app.all_entries[self.app.view][
             (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
         ]
 
-    def get_selected(self):
+    def get_selected(self) -> str:
         return self.get_page()[self.selected.value]

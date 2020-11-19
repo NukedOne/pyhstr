@@ -39,16 +39,16 @@ class App:
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
-        self.raw_history = self.get_history()
-        self.all_entries = {
+        self.raw_history: List[str] = self.get_history()
+        self.all_entries: Dict[int, List[str]] = {
             0: sort(remove_duplicates(self.raw_history)),
             1: sort(read(SHELLS[SHELL]["fav"])),
             2: remove_duplicates(self.raw_history)
         }
         self.to_restore = self.all_entries.copy()
-        self.regex_mode = False
-        self.case_sensitivity = False
-        self.view = 0 # 0 = sorted and deduped; 1 = sorted favorites; 2 = deduped
+        self.regex_mode: bool = False
+        self.case_sensitivity: bool = False
+        self.view: int = 0 # 0 = sorted and deduped; 1 = sorted favorites; 2 = deduped
 
     def get_history(self) -> List[str]: # pylint: disable=no-self-use
         if SHELL == Shell.IPYTHON:
