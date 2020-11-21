@@ -1,7 +1,7 @@
 import collections
 import enum
 import fcntl
-import pathlib
+from pathlib import Path
 import termios
 from typing import List, Optional
 import sys
@@ -13,20 +13,21 @@ def sort(thing: List[str]) -> List[str]:
     ]
 
 
-def write(path: Optional[pathlib.Path], thing: List[str]) -> None:
+def write(path: Optional[Path], thing: List[str]) -> None:
     assert path is not None
     with open(path, "w") as f:
         for thingy in thing:
             print(thingy, file=f)
 
 
-def read(path: Optional[pathlib.Path]) -> List[str]:
+def read(path: Optional[Path]) -> List[str]:
     assert path is not None
     try:
         with open(path, "r") as f:
             return [command.strip() for command in f]
-    except FileNotFoundError as e:
-        pathlib.Path(e.filename).touch()
+    except FileNotFoundError:
+        path.parent.mkdir(exist_ok=True)
+        path.touch()
         return [""]
 
 
@@ -47,12 +48,12 @@ def get_ipython_history() -> List[str]:
     ]
 
 
-def get_bpython_history_path() -> Optional[pathlib.Path]:
+def get_bpython_history_path() -> Optional[Path]:
     try:
         from bpython.config import get_config_home, loadini, Struct
         config = Struct()
-        loadini(config, pathlib.Path(get_config_home()).expanduser() / "config")
-        return pathlib.Path(config.hist_file).expanduser()
+        loadini(config, Path(get_config_home()).expanduser() / "config")
+        return Path(config.hist_file).expanduser()
     except ImportError:
         return None
 
@@ -70,7 +71,7 @@ def detect_shell() -> Shell:
             return Shell.IPYTHON
     except ImportError:
         pass
-    exe = pathlib.Path(sys.argv[0]).name
+    exe = Path(sys.argv[0]).name
     if exe == Shell.BPYTHON.value:
         return Shell.BPYTHON
     return Shell.STANDARD
