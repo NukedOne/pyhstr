@@ -34,3 +34,29 @@ alias py='python3 -ic "from pyhstr import hh"'
 ## Screencast
 
 ![screenshot](pyhstr.gif)
+
+## Development
+
+```
+git clone https://github.com/xvm32/pyhstr
+cd pyhstr
+python3 -m venv env
+source env/bin/activate
+pip install poetry
+poetry install
+```
+
+To run tests, mypy checks, and style checks, you need to have Pythons:
+
+- 3.6
+- 3.7
+- 3.8
+- 3.9
+
+For installing all the Python versions, I recommend [pyenv](https://github.com/pyenv/pyenv).
+
+Once you have them, run:
+
+```
+tox
+```
