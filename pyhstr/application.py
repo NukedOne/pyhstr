@@ -88,7 +88,7 @@ class App:
                 for cmd_idx in reversed(cmd_indexes):
                     readline.remove_history_item(cmd_idx)
 
-                readline.write_history_file(str(SHELLS[SHELL]["hist"]))
+                readline.write_history_file(str(SHELLS[Shell.STANDARD]["hist"]))
 
             elif SHELL == Shell.IPYTHON:
                 import IPython
@@ -98,7 +98,7 @@ class App:
 
             elif SHELL == Shell.BPYTHON:
                 self.raw_history = [cmd for cmd in self.raw_history if cmd != command]
-                write(SHELLS[SHELL]["hist"], self.raw_history)
+                write(SHELLS[Shell.BPYTHON]["hist"], self.raw_history)
 
             else:
                 pass # future implementations
