@@ -114,7 +114,7 @@ class App:
         elif answer == ord("n"):
             self.user_interface.populate_screen()
 
-    def add_to_or_remove_from_favorites(self, command: str):
+    def add_to_or_remove_from_favorites(self, command: str) -> None:
         if command not in self.all_entries[1]:
             self.all_entries[1].append(command)
         else:
