@@ -37,7 +37,7 @@ alias py='python3 -ic "from pyhstr import hh"'
 
 ## Development
 
-```
+```sh
 git clone https://github.com/xvm32/pyhstr
 cd pyhstr
 python3 -m venv env
