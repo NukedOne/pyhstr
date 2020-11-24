@@ -37,13 +37,21 @@ alias py='python3 -ic "from pyhstr import hh"'
 
 ## Development
 
+You will need [poetry](https://github.com/python-poetry/poetry), preferably with these options in config:
+
+```toml
+virtualenvs.create = true
+virtualenvs.in-project = true
+```
+
+Then clone the repo, cd into it, make a venv, spawn the shell, and install the project:
+
 ```sh
-git clone https://github.com/xvm32/pyhstr
-cd pyhstr
-python3 -m venv env
-source env/bin/activate
-pip install poetry
-poetry install
+$ git clone https://github.com/xvm32/pyhstr
+$ cd pyhstr
+$ poetry env use python3
+$ poetry shell
+$ poetry install
 ```
 
 To run tests, mypy checks, and style checks, you need to have Pythons:
@@ -58,5 +66,5 @@ For installing all the Python versions, I recommend [pyenv](https://github.com/p
 Once you have them, run:
 
 ```
-tox
+$ tox
 ```
