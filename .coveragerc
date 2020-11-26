@@ -1,3 +1,4 @@
 [run]
+source = pyhstr
 omit =
-    */pyhstr/__init__.py
+    pyhstr/__init__.py

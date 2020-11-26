@@ -33,6 +33,14 @@ KEY_BINDINGS = {
     curses.KEY_NPAGE: 1
 }
 
+CTRL_E = "\x05"
+CTRL_F = "\x06"
+CTRL_T = "\x14"
+CTRL_SLASH = "\x1f"
+TAB = "\t"
+ENTER = "\n"
+ESC = "\x1b"
+DEL = curses.KEY_DC
 
 class App:
 
@@ -144,34 +152,34 @@ def main(stdscr) -> None: # pylint: disable=too-many-statements
         except KeyboardInterrupt:
             break
 
-        if user_input == "\x05": # C-e
+        if user_input == CTRL_E:
             app.toggle_regex_mode()
             app.user_interface.page.selected.value = 0
             app.user_interface.populate_screen()
 
-        elif user_input == "\x06": # C-f
+        elif user_input == CTRL_F:
             command = app.user_interface.page.get_selected()
             app.add_to_or_remove_from_favorites(command)
 
-        elif user_input == "\t": # TAB
+        elif user_input == TAB:
             command = app.user_interface.page.get_selected()
             echo(command)
             break
 
-        elif user_input == "\n": # ENTER
+        elif user_input == ENTER:
             command = app.user_interface.page.get_selected()
             echo(command)
             echo("\n")
             break
 
-        elif user_input == "\x14": # C-t
+        elif user_input == CTRL_T:
             app.toggle_case()
             app.user_interface.populate_screen()
 
-        elif user_input == "\x1b": # ESC
+        elif user_input == ESC:
             break
 
-        elif user_input == "\x1f": # C-/
+        elif user_input == CTRL_SLASH:
             app.toggle_view()
             app.user_interface.page.selected.value = 0
             app.user_interface.populate_screen()
@@ -191,7 +199,7 @@ def main(stdscr) -> None: # pylint: disable=too-many-statements
             app.all_entries = app.to_restore.copy()
             app.search()
 
-        elif user_input == curses.KEY_DC: # del
+        elif user_input == DEL:
             command = app.user_interface.page.get_selected()
             app.delete_from_history(command)
 

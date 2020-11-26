@@ -2,7 +2,9 @@ dist
 env
 *.egg-info
 __pycache__
-.vscode
-.mypy_cache
+.vscode/
+.mypy_cache/
+.pytest_cache/
 .tox
 *.lock
+.coverage
