@@ -3,7 +3,6 @@ import re
 import sys
 from typing import Dict, List, Optional, Union
 
-
 COLORS: Dict[str, Optional[int]] = {
     # yet to be initialized
     "normal": None,
@@ -11,39 +10,42 @@ COLORS: Dict[str, Optional[int]] = {
     "highlighted-green": None,
     "highlighted-red": None,
     "white": None,
-    "bold-red": None
+    "bold-red": None,
 }
 
-PYHSTR_LABEL = "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
-PYHSTR_STATUS = "- view:{} (C-/) - match:{} (C-e) - case:{} (C-t) - page {}/{} -"
+PYHSTR_LABEL = (
+    "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
+)
+PYHSTR_STATUS = "- view:{} (C-/) - regex mode:{} (C-e) - case:{} (C-t) - page {}/{} -"
 
-PS1 = getattr(sys, 'ps1', '>>> ')
+PS1 = getattr(sys, "ps1", ">>> ")
 
 DISPLAY: Dict[str, Dict[Union[int, bool], str]] = {
     "view": {
         0: "sorted",
         1: "favorites",
-        2: "history"
+        2: "history",
     },
     "case": {
         True: "sensitive",
-        False: "insensitive"
+        False: "insensitive",
     },
-    "match": {
-        False: "exact",
-        True: "regex"
-    }
+    "regex_mode": {
+        True: "on",
+        False: "off",
+    },
 }
 
 
 class UserInterface:
-
     def __init__(self, app):
         self.app = app
         self.page = Page(self.app)
         self.search_string = ""
 
-    def _addstr(self, y_coord: int, x_coord: int, text: str, color_info: Optional[int]) -> None:
+    def _addstr(
+        self, y_coord: int, x_coord: int, text: str, color_info: Optional[int]
+    ) -> None:
         """
         Works around curses' limitation of drawing at bottom right corner
         of the screen, as seen on https://stackoverflow.com/q/36387625
@@ -51,7 +53,7 @@ class UserInterface:
         screen_height: int
         screen_width: int
         screen_height, screen_width = self.app.stdscr.getmaxyx()
-        if x_coord + len(text) == screen_width and y_coord == screen_height-1:
+        if x_coord + len(text) == screen_width and y_coord == screen_height - 1:
             try:
                 self.app.stdscr.addstr(y_coord, x_coord, text, color_info)
             except curses.error:
@@ -67,7 +69,7 @@ class UserInterface:
             3: [15, curses.COLOR_GREEN],
             4: [15, curses.COLOR_RED],
             5: [15, 0],
-            6: [curses.COLOR_RED, 0, curses.A_BOLD]
+            6: [curses.COLOR_RED, 0, curses.A_BOLD],
         }
 
         for idx, color in enumerate(COLORS, 1):
@@ -79,14 +81,15 @@ class UserInterface:
 
     def populate_screen(self) -> None:
         self.app.stdscr.clear()
+        current_page = self.app.user_interface.page.value
+        total_pages = self.app.user_interface.page.total_pages()
 
-        pyhstr_status = PYHSTR_STATUS.format(
+        status = PYHSTR_STATUS.format(
             DISPLAY["view"][self.app.view],
-            DISPLAY["match"][self.app.regex_mode],
+            DISPLAY["regex_mode"][self.app.regex_mode],
             DISPLAY["case"][self.app.case_sensitivity],
-            (self.app.user_interface.page.value
-            if self.app.user_interface.page.total_pages() > 0 else 0),
-            self.app.user_interface.page.total_pages()
+            current_page if total_pages > 0 else 0,
+            total_pages,
         ).ljust(curses.COLS - 1)
 
         entries = self.page.get_page()
@@ -108,41 +111,39 @@ class UserInterface:
                             self.app.stdscr.addch(index + 3, idx + 1, letter)
                             self.app.stdscr.attroff(COLORS["bold-red"])
 
-                if entry in self.app.all_entries[1]: # in favorites
+                if entry in self.app.commands[1]:  # in favorites
                     self._addstr(index + 3, 1, padded_entry, COLORS["white"])
 
                 if index == self.app.user_interface.page.selected.value:
                     self._addstr(
-                        index + 3, 1,
-                        padded_entry,
-                        COLORS["highlighted-green"]
+                        index + 3, 1, padded_entry, COLORS["highlighted-green"]
                     )
             except curses.error:
                 pass
 
-        self._addstr(1, 0, PYHSTR_LABEL, COLORS["normal"])
-        self._addstr(2, 1, pyhstr_status, COLORS["highlighted-white"])
-        self._addstr(0, 0, PS1 + self.search_string, COLORS["normal"])
+        self._addstr(1, 1, PYHSTR_LABEL, COLORS["normal"])
+        self._addstr(2, 1, status, COLORS["highlighted-white"])
+        self._addstr(0, 1, PS1 + self.search_string, COLORS["normal"])
 
     def prompt_for_deletion(self, command: str) -> None:
         prompt = f"Do you want to delete all occurences of {command}? y/n"
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
-        self._addstr(1, 0, prompt, COLORS["highlighted-red"])
+        self._addstr(1, 1, prompt, COLORS["highlighted-red"])
 
     def show_regex_error(self) -> None:
         prompt = "Invalid regex. Try again."
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
-        self._addstr(1, 0, prompt, COLORS["highlighted-red"])
-        self._addstr(0, 0, PS1 + self.search_string, COLORS["normal"])
+        self._addstr(1, 1, prompt, COLORS["highlighted-red"])
+        self._addstr(0, 1, PS1 + self.search_string, COLORS["normal"])
 
     def get_substring_indexes(self, entry: str) -> List[int]:
         return [
             index
-            for m in self.create_search_string_regex().finditer(entry)
+            for m in self.create_search_regex().finditer(entry)
             for index in range(m.start(), m.end())
         ]
 
-    def create_search_string_regex(self) -> re.Pattern:
+    def create_search_regex(self) -> re.Pattern:
         try:
             if self.app.case_sensitivity:
                 if self.app.regex_mode:
@@ -154,13 +155,12 @@ class UserInterface:
                 return re.compile(re.escape(self.search_string), re.IGNORECASE)
         except re.error:
             self.show_regex_error()
-            self.app.all_entries[self.app.view] = []
+            self.app.commands[self.app.view] = []
             self.populate_screen()
-            return re.compile(r"this regex doesn't match anything^") # thanks Akuli
+            return re.compile(r"this regex doesn't match anything^")  # thanks Akuli
 
 
-class EntryCounter: # pylint: disable=too-few-public-methods
-
+class EntryCounter:  # pylint: disable=too-few-public-methods
     def __init__(self, app):
         self.value = 0
         self.app = app
@@ -168,22 +168,20 @@ class EntryCounter: # pylint: disable=too-few-public-methods
     def move(self, direction: int) -> None:
         page_size = self.app.user_interface.page.get_page_size()
         self.value += direction
+
         try:
             self.value %= page_size
         except ZeroDivisionError:
             return None
-        if direction == 1:
-            if self.value == 0:
-                self.app.user_interface.page.turn(1)
-        elif direction == -1:
-            # in both places, we are subtracting 1 because indexing starts from zero
-            if self.value == (page_size - 1):
-                self.app.user_interface.page.turn(-1)
-                self.value = self.app.user_interface.page.get_page_size() - 1
+
+        if direction == 1 and self.value == 0:
+            self.app.user_interface.page.turn(1)
+        elif direction == -1 and self.value == (page_size - 1):
+            self.app.user_interface.page.turn(-1)
+            self.value = self.app.user_interface.page.get_page_size() - 1
 
 
 class Page:
-
     def __init__(self, app):
         self.value = 1
         self.app = app
@@ -220,13 +218,13 @@ class Page:
         self.value = ((self.value - 1 + direction) % self.total_pages()) + 1
 
     def total_pages(self) -> int:
-        return len(range(0, len(self.app.all_entries[self.app.view]), curses.LINES - 3))
+        return len(range(0, len(self.app.commands[self.app.view]), curses.LINES - 3))
 
     def get_page_size(self) -> int:
         return len(self.get_page())
 
     def get_page(self) -> List[str]:
-        return self.app.all_entries[self.app.view][
+        return self.app.commands[self.app.view][
             (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
         ]
 
