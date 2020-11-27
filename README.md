@@ -44,14 +44,14 @@ virtualenvs.create = true
 virtualenvs.in-project = true
 ```
 
-Then clone the repo, cd into it, make a venv, spawn the shell, and install the project:
+Then clone the repo, cd into it, make a venv, activate it, and install the project:
 
 ```sh
-$ git clone https://github.com/xvm32/pyhstr
-$ cd pyhstr
-$ poetry env use python3
-$ . .venv/bin/activate
-$ poetry install
+git clone https://github.com/xvm32/pyhstr
+cd pyhstr
+poetry env use python3
+. .venv/bin/activate
+poetry install
 ```
 
 To run tests, mypy checks, and style checks, you need to have Pythons:
@@ -66,5 +66,9 @@ For installing all the Python versions, I recommend [pyenv](https://github.com/p
 Once you have them, run:
 
 ```
-$ tox
+tox
 ```
+
+## Licensing
+
+Licensed under the [MIT License](https://opensource.org/licenses/MIT). For details, see [LICENSE](https://github.com/xvm32/pyhstr/blob/master/LICENSE).

@@ -19,20 +19,13 @@ def old_remove_duplicates(thing):
 
 def old_sort(thing):
     return [
-        x[0] for x in sorted(
-            collections.Counter(thing).items(), key=lambda y: -y[1]
-        )
+        x[0] for x in sorted(collections.Counter(thing).items(), key=lambda y: -y[1])
     ]
 
 
 def generate_random_history():
     return [
-        "".join(
-            [
-                random.choice(CHARS)
-                for _ in range(random.randint(40, 80))
-            ]
-        )
+        "".join([random.choice(CHARS) for _ in range(random.randint(40, 80))])
         for _ in range(100)
     ]
 
@@ -48,4 +41,7 @@ def test_new_remove_duplicates_does_not_break_removing_duplicates():
 
 
 def test_get_default_bpython_history_path():
-    assert get_bpython_history_path() in {pathlib.Path("~/.pythonhist").expanduser(), None}
+    assert get_bpython_history_path() in {
+        pathlib.Path("~/.pythonhist").expanduser(),
+        None,
+    }

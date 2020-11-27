@@ -4,8 +4,15 @@ from typing import Dict, List, Optional
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
-    Shell, detect_shell, echo, get_bpython_history_path,
-    get_ipython_history, read, remove_duplicates, sort, write
+    Shell,
+    detect_shell,
+    echo,
+    get_bpython_history_path,
+    get_ipython_history,
+    read,
+    remove_duplicates,
+    sort,
+    write,
 )
 
 SHELL = detect_shell()
