@@ -160,7 +160,7 @@ class UserInterface:
             return re.compile(r"this regex doesn't match anything^")  # thanks Akuli
 
 
-class EntryCounter:  # pylint: disable=too-few-public-methods
+class SelectedItem:  # pylint: disable=too-few-public-methods
     def __init__(self, app):
         self.value = 0
         self.app = app
@@ -185,7 +185,7 @@ class Page:
     def __init__(self, app):
         self.value = 1
         self.app = app
-        self.selected = EntryCounter(self.app)
+        self.selected = SelectedItem(self.app)
 
     def turn(self, direction: int) -> None:
         """
