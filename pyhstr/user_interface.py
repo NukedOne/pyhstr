@@ -1,7 +1,7 @@
 import curses
 import re
 import sys
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Pattern, Union
 
 COLORS: Dict[str, Optional[int]] = {
     # yet to be initialized
@@ -143,7 +143,7 @@ class UserInterface:
             for index in range(m.start(), m.end())
         ]
 
-    def create_search_regex(self) -> re.Pattern:
+    def create_search_regex(self) -> Pattern:
         try:
             if self.app.case_sensitivity:
                 if self.app.regex_mode:
