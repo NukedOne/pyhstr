@@ -16,7 +16,7 @@ COLORS: Dict[str, Optional[int]] = {
 PYHSTR_LABEL = (
     "Type to filter, UP/DOWN move, RET/TAB select, DEL remove, ESC quit, C-f add/rm fav"
 )
-PYHSTR_STATUS = "- view:{} (C-/) - regex mode:{} (C-e) - case:{} (C-t) - page {}/{} -"
+PYHSTR_STATUS = "- view:{} (C-/) - regex:{} (C-e) - case:{} (C-t) - page {}/{} -"
 
 PS1 = getattr(sys, "ps1", ">>> ")
 
@@ -145,14 +145,14 @@ class UserInterface:
 
     def create_search_regex(self) -> Pattern:
         try:
-            if self.app.case_sensitivity:
-                if self.app.regex_mode:
-                    return re.compile(self.search_string)
-                return re.compile(re.escape(self.search_string))
-            else:
-                if self.app.regex_mode:
-                    return re.compile(self.search_string, re.IGNORECASE)
-                return re.compile(re.escape(self.search_string), re.IGNORECASE)
+            search_string = (
+                self.search_string
+                if self.app.regex_mode
+                else re.escape(self.search_string)
+            )
+            return re.compile(
+                search_string, re.IGNORECASE if not self.app.case_sensitivity else 0
+            )
         except re.error:
             self.show_regex_error()
             self.app.commands[self.app.view] = []
