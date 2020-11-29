@@ -1,6 +1,7 @@
 import curses
+import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Pattern
 
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
@@ -63,6 +64,7 @@ class App:
         self.regex_mode: bool = False
         self.case_sensitivity: bool = False
         self.view: int = 0  # 0 = sorted and deduped; 1 = sorted favorites; 2 = deduped
+        self.search_string = ""
 
     def get_history(self) -> List[str]:  # pylint: disable=no-self-use
         if SHELL == Shell.IPYTHON:
@@ -76,10 +78,24 @@ class App:
         self.commands[self.view] = [
             cmd
             for cmd in self.commands[self.view]
-            if self.user_interface.create_search_regex().search(cmd)
+            if self.create_search_regex().search(cmd)
         ]
 
         self.user_interface.populate_screen()
+
+    def create_search_regex(self) -> Pattern:
+        try:
+            search_string = (
+                self.search_string if self.regex_mode else re.escape(self.search_string)
+            )
+            return re.compile(
+                search_string, re.IGNORECASE if not self.case_sensitivity else 0
+            )
+        except re.error:
+            self.user_interface.show_regex_error()
+            self.commands[self.view] = []
+            self.user_interface.populate_screen()
+            return re.compile(r"this regex doesn't match anything^")  # thanks Akuli
 
     def delete_from_history(self, command: str) -> None:
         self.user_interface.prompt_for_deletion(command)
@@ -199,8 +215,8 @@ def main(stdscr) -> None:  # pylint: disable=too-many-statements
             app.user_interface.populate_screen()
 
         elif user_input == curses.KEY_BACKSPACE:
-            app.user_interface.search_string = app.user_interface.search_string[:-1]
-            if not app.user_interface.search_string:
+            app.search_string = app.search_string[:-1]
+            if not app.search_string:
                 app.user_interface.page.selected.value = 0
             app.commands = app.to_restore.copy()
             app.search()
@@ -210,6 +226,6 @@ def main(stdscr) -> None:  # pylint: disable=too-many-statements
             app.delete_from_history(command)
 
         else:
-            app.user_interface.search_string += user_input
+            app.search_string += user_input
             app.commands = app.to_restore.copy()
             app.search()

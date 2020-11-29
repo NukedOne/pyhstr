@@ -1,7 +1,6 @@
 import curses
-import re
 import sys
-from typing import Dict, List, Optional, Pattern, Union
+from typing import Dict, List, Optional, Union
 
 COLORS: Dict[str, Optional[int]] = {
     # yet to be initialized
@@ -41,7 +40,6 @@ class UserInterface:
     def __init__(self, app):
         self.app = app
         self.page = Page(self.app)
-        self.search_string = ""
 
     def _addstr(
         self, y_coord: int, x_coord: int, text: str, color_info: Optional[int]
@@ -92,38 +90,38 @@ class UserInterface:
             total_pages,
         ).ljust(curses.COLS - 1)
 
-        entries = self.page.get_page()
+        cmds = self.page.get_commands()
 
-        for index, entry in enumerate(entries):
+        for cmd_idx, cmd in enumerate(cmds):
             # print everything first (normal),
             # then print found matches (in red)
             # then print favorites (white)
             # then print selected on top of all that (green)
             try:
-                padded_entry = entry.ljust(curses.COLS - 1)
-                self._addstr(index + 3, 1, padded_entry, COLORS["normal"])
-                substring_indexes = self.get_substring_indexes(entry)
+                padded_cmd = cmd.ljust(curses.COLS - 1)
+                self._addstr(cmd_idx + 3, 1, padded_cmd, COLORS["normal"])
+                matched_chars = self.get_matched_chars(cmd)
 
-                if substring_indexes:
-                    for idx, letter in enumerate(entry):
-                        if idx in substring_indexes:
+                if matched_chars:
+                    for char_idx, char in enumerate(cmd):
+                        if char_idx in matched_chars:
                             self.app.stdscr.attron(COLORS["bold-red"])
-                            self.app.stdscr.addch(index + 3, idx + 1, letter)
+                            self.app.stdscr.addch(cmd_idx + 3, char_idx + 1, char)
                             self.app.stdscr.attroff(COLORS["bold-red"])
 
-                if entry in self.app.commands[1]:  # in favorites
-                    self._addstr(index + 3, 1, padded_entry, COLORS["white"])
+                if cmd in self.app.commands[1]:  # in favorites
+                    self._addstr(cmd_idx + 3, 1, padded_cmd, COLORS["white"])
 
-                if index == self.app.user_interface.page.selected.value:
+                if cmd_idx == self.app.user_interface.page.selected.value:
                     self._addstr(
-                        index + 3, 1, padded_entry, COLORS["highlighted-green"]
+                        cmd_idx + 3, 1, padded_cmd, COLORS["highlighted-green"]
                     )
             except curses.error:
                 pass
 
         self._addstr(1, 1, PYHSTR_LABEL, COLORS["normal"])
         self._addstr(2, 1, status, COLORS["highlighted-white"])
-        self._addstr(0, 1, PS1 + self.search_string, COLORS["normal"])
+        self._addstr(0, 1, PS1 + self.app.search_string, COLORS["normal"])
 
     def prompt_for_deletion(self, command: str) -> None:
         prompt = f"Do you want to delete all occurences of {command}? y/n"
@@ -134,39 +132,23 @@ class UserInterface:
         prompt = "Invalid regex. Try again."
         self._addstr(1, 0, "".ljust(curses.COLS), COLORS["normal"])
         self._addstr(1, 1, prompt, COLORS["highlighted-red"])
-        self._addstr(0, 1, PS1 + self.search_string, COLORS["normal"])
+        self._addstr(0, 1, PS1 + self.app.search_string, COLORS["normal"])
 
-    def get_substring_indexes(self, entry: str) -> List[int]:
+    def get_matched_chars(self, command: str) -> List[int]:
         return [
-            index
-            for m in self.create_search_regex().finditer(entry)
-            for index in range(m.start(), m.end())
+            cmd_idx
+            for m in self.app.create_search_regex().finditer(command)
+            for cmd_idx in range(m.start(), m.end())
         ]
 
-    def create_search_regex(self) -> Pattern:
-        try:
-            search_string = (
-                self.search_string
-                if self.app.regex_mode
-                else re.escape(self.search_string)
-            )
-            return re.compile(
-                search_string, re.IGNORECASE if not self.app.case_sensitivity else 0
-            )
-        except re.error:
-            self.show_regex_error()
-            self.app.commands[self.app.view] = []
-            self.populate_screen()
-            return re.compile(r"this regex doesn't match anything^")  # thanks Akuli
 
-
-class SelectedItem:  # pylint: disable=too-few-public-methods
-    def __init__(self, app):
+class SelectedCmd:  # pylint: disable=too-few-public-methods
+    def __init__(self, page):
         self.value = 0
-        self.app = app
+        self.page = page
 
     def move(self, direction: int) -> None:
-        page_size = self.app.user_interface.page.get_page_size()
+        page_size = self.page.get_size()
         self.value += direction
 
         try:
@@ -175,24 +157,24 @@ class SelectedItem:  # pylint: disable=too-few-public-methods
             return None
 
         if direction == 1 and self.value == 0:
-            self.app.user_interface.page.turn(1)
+            self.page.turn(1)
         elif direction == -1 and self.value == (page_size - 1):
-            self.app.user_interface.page.turn(-1)
-            self.value = self.app.user_interface.page.get_page_size() - 1
+            self.page.turn(-1)
+            self.value = self.page.get_size() - 1
 
 
 class Page:
     def __init__(self, app):
         self.value = 1
         self.app = app
-        self.selected = SelectedItem(self.app)
+        self.selected = SelectedCmd(self)
 
     def turn(self, direction: int) -> None:
         """
         Paging starts from 1 but we want it to start at 0,
         because that's how our calculation with modulo works.
 
-        So, if the indexing started from zero, we would have had:
+        So, if the cmd_idxing started from zero, we would have had:
 
         self.value = (self.value + 1) % total_pages
 
@@ -220,13 +202,13 @@ class Page:
     def total_pages(self) -> int:
         return len(range(0, len(self.app.commands[self.app.view]), curses.LINES - 3))
 
-    def get_page_size(self) -> int:
-        return len(self.get_page())
+    def get_size(self) -> int:
+        return len(self.get_commands())
 
-    def get_page(self) -> List[str]:
+    def get_commands(self) -> List[str]:
         return self.app.commands[self.app.view][
             (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
         ]
 
     def get_selected(self) -> str:
-        return self.get_page()[self.selected.value]
+        return self.get_commands()[self.selected.value]
