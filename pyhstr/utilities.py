@@ -7,6 +7,18 @@ from pathlib import Path
 from typing import List, Optional
 
 
+class Shell(enum.Enum):
+    STANDARD = "python"
+    IPYTHON = "ipython"
+    BPYTHON = "bpython"
+
+
+class View(enum.Enum):
+    SORTED = 0
+    FAVORITES = 1
+    ALL = 2
+
+
 def sort(thing: List[str]) -> List[str]:
     return [x for x, _ in collections.Counter(thing).most_common()]
 
@@ -56,12 +68,6 @@ def get_bpython_history_path() -> Optional[Path]:
         return Path(config.hist_file).expanduser()
     except ImportError:
         return None
-
-
-class Shell(enum.Enum):
-    STANDARD = "python"
-    IPYTHON = "ipython"
-    BPYTHON = "bpython"
 
 
 def detect_shell() -> Shell:

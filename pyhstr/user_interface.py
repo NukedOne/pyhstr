@@ -1,6 +1,8 @@
 import curses
 import sys
 from typing import Dict, List, Optional, Union
+from pyhstr.utilities import View
+
 
 COLORS: Dict[str, Optional[int]] = {
     # yet to be initialized
@@ -19,11 +21,11 @@ PYHSTR_STATUS = "- view:{} (C-/) - regex:{} (C-e) - case:{} (C-t) - page {}/{} -
 
 PS1 = getattr(sys, "ps1", ">>> ")
 
-DISPLAY: Dict[str, Dict[Union[int, bool], str]] = {
+DISPLAY: Dict[str, Dict[Union[View, bool], str]] = {
     "view": {
-        0: "sorted",
-        1: "favorites",
-        2: "history",
+        View.SORTED: "sorted",
+        View.FAVORITES: "favorites",
+        View.ALL: "history",
     },
     "case": {
         True: "sensitive",
@@ -109,7 +111,7 @@ class UserInterface:
                             self.app.stdscr.addch(cmd_idx + 3, char_idx + 1, char)
                             self.app.stdscr.attroff(COLORS["bold-red"])
 
-                if cmd in self.app.commands[1]:  # in favorites
+                if cmd in self.app.commands[View.FAVORITES]:
                     self._addstr(cmd_idx + 3, 1, padded_cmd, COLORS["white"])
 
                 if cmd_idx == self.app.user_interface.page.selected.value:

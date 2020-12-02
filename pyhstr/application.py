@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Pattern
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
     Shell,
+    View,
     detect_shell,
     echo,
     get_bpython_history_path,
@@ -55,15 +56,15 @@ class App:
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
         self.raw_history: List[str] = self.get_history()
-        self.commands: Dict[int, List[str]] = {
-            0: sort(remove_duplicates(self.raw_history)),
-            1: sort(read(SHELLS[SHELL]["fav"])),
-            2: remove_duplicates(self.raw_history),
+        self.commands: Dict[View, List[str]] = {
+            View.SORTED: sort(remove_duplicates(self.raw_history)),
+            View.FAVORITES: sort(read(SHELLS[SHELL]["fav"])),
+            View.ALL: remove_duplicates(self.raw_history),
         }
         self.to_restore = self.commands.copy()
         self.regex_mode: bool = False
         self.case_sensitivity: bool = False
-        self.view: int = 0  # 0 = sorted and deduped; 1 = sorted favorites; 2 = deduped
+        self.view: View = View.SORTED
         self.search_string = ""
 
     def get_history(self) -> List[str]:  # pylint: disable=no-self-use
@@ -145,11 +146,11 @@ class App:
             self.user_interface.populate_screen()
 
     def add_to_or_remove_from_favorites(self, command: str) -> None:
-        if command not in self.commands[1]:
-            self.commands[1].append(command)
+        if command not in self.commands[View.FAVORITES]:
+            self.commands[View.FAVORITES].append(command)
         else:
-            self.commands[1].remove(command)
-        write(SHELLS[SHELL]["fav"], self.commands[1])
+            self.commands[View.FAVORITES].remove(command)
+        write(SHELLS[SHELL]["fav"], self.commands[View.FAVORITES])
 
     def toggle_regex_mode(self) -> None:
         self.regex_mode = not self.regex_mode
@@ -158,7 +159,7 @@ class App:
         self.case_sensitivity = not self.case_sensitivity
 
     def toggle_view(self) -> None:
-        self.view = (self.view + 1) % 3
+        self.view = View((self.view.value + 1) % 3)
 
 
 def main(stdscr) -> None:  # pylint: disable=too-many-statements
