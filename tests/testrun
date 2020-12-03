@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for shell in python ipython bpython; do
+    export PYTHON_SHELL="$shell"
+    $shell -c "import pytest; pytest.main(['-m', '$shell'])"
+done
+
+pytest -m all

@@ -144,27 +144,6 @@ class UserInterface:
         ]
 
 
-class SelectedCmd:  # pylint: disable=too-few-public-methods
-    def __init__(self, page):
-        self.value = 0
-        self.page = page
-
-    def move(self, direction: int) -> None:
-        page_size = self.page.get_size()
-        self.value += direction
-
-        try:
-            self.value %= page_size
-        except ZeroDivisionError:
-            return None
-
-        if direction == 1 and self.value == 0:
-            self.page.turn(1)
-        elif direction == -1 and self.value == (page_size - 1):
-            self.page.turn(-1)
-            self.value = self.page.get_size() - 1
-
-
 class Page:
     def __init__(self, app):
         self.value = 1
@@ -214,3 +193,24 @@ class Page:
 
     def get_selected(self) -> str:
         return self.get_commands()[self.selected.value]
+
+
+class SelectedCmd:  # pylint: disable=too-few-public-methods
+    def __init__(self, page):
+        self.value = 0
+        self.page = page
+
+    def move(self, direction: int) -> None:
+        page_size = self.page.get_size()
+        self.value += direction
+
+        try:
+            self.value %= page_size
+        except ZeroDivisionError:
+            return None
+
+        if direction == 1 and self.value == 0:
+            self.page.turn(1)
+        elif direction == -1 and self.value == (page_size - 1):
+            self.page.turn(-1)
+            self.value = self.page.get_size() - 1

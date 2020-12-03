@@ -1,47 +1,101 @@
-import collections
-import pathlib
-import random
-import string
+# pylint: disable=redefined-outer-name
+# pylint: disable=unused-argument
+# pylint: disable=unused-import
 
-from pyhstr.utilities import get_bpython_history_path, remove_duplicates, sort
+import os
+import pytest
 
+from pyhstr import utilities
+from pyhstr.utilities import (
+    Shell,
+    detect_shell,
+    echo,
+    get_bpython_history_path,
+    get_ipython_history,
+    read,
+    remove_duplicates,
+    sort,
+    write,
+)
 
-CHARS = string.ascii_letters + string.digits + r"!@#$%^&*()_+,./;'\\[]<>?:\"|{}"
-
-
-def old_remove_duplicates(thing):
-    without_duplicates = []
-    for thingy in thing:
-        if thingy not in without_duplicates:
-            without_duplicates.append(thingy)
-    return without_duplicates
-
-
-def old_sort(thing):
-    return [
-        x[0] for x in sorted(collections.Counter(thing).items(), key=lambda y: -y[1])
-    ]
-
-
-def generate_random_history():
-    return [
-        "".join([random.choice(CHARS) for _ in range(random.randint(40, 80))])
-        for _ in range(100)
-    ]
-
-
-def test_new_sort_does_not_break_sorting():
-    history = generate_random_history()
-    assert old_sort(history) == sort(history)
+from tests.fixtures import (
+    fake_bpython,
+    fake_fcntl,
+    fake_ipython,
+    fake_standard,
+    fake_termios,
+    random_history,
+    params,
+)
 
 
-def test_new_remove_duplicates_does_not_break_removing_duplicates():
-    history = generate_random_history()
-    assert old_remove_duplicates(history) == remove_duplicates(history)
+@pytest.mark.all
+def test_sort():
+    history = [3, 2, 4, 6, 2, 4, 3, 3, 4, 5, 6, 3, 2, 4, 5, 5, 3]
+    assert sort(history) == [3, 4, 5, 2, 6]
 
 
-def test_get_default_bpython_history_path():
-    assert get_bpython_history_path() in {
-        pathlib.Path("~/.pythonhist").expanduser(),
-        None,
-    }
+@pytest.mark.all
+def test_remove_duplicates():
+    history = [3, 2, 4, 6, 2, 4, 3, 3, 4, 5, 6, 3, 2, 4, 5, 5, 3]
+    assert remove_duplicates(history) == [3, 2, 4, 6, 5]
+
+
+@pytest.mark.parametrize("shell, fixture", params)
+def test_detect_shell(shell, fixture):
+    assert detect_shell() == shell
+
+
+@pytest.mark.bpython
+def test_get_bpython_history_path():
+    assert get_bpython_history_path() is not None
+
+
+@pytest.mark.bpython
+def test_get_bpython_history_path_none(monkeypatch):
+    monkeypatch.setattr(utilities, "Struct", None)
+    assert get_bpython_history_path() is None
+
+
+@pytest.mark.ipython
+@pytest.mark.skipif(os.environ["PYTHON_SHELL"] != "ipython", reason="ipython only")
+def test_get_ipython_history(fake_ipython):
+    history = get_ipython_history()
+    assert isinstance(history, list)
+
+
+@pytest.mark.all
+@pytest.mark.history_length(100)
+def test_echo(fake_fcntl, fake_termios, random_history):
+    for command in random_history:
+        echo(command)
+        for byte in command.encode("utf-8"):
+            assert (0, None, bytes([byte])) in fake_fcntl.echoed
+
+
+@pytest.mark.all
+@pytest.mark.history_length(100)
+def test_write(tmp_path, random_history):
+    with pytest.raises(AssertionError):
+        write(None, random_history)
+    path = tmp_path / "spam"
+    write(path, random_history)
+    assert (path).exists()
+
+
+@pytest.mark.all
+def test_read_none():
+    with pytest.raises(AssertionError):
+        read(None)
+
+
+@pytest.mark.all
+def test_read_file_creation(tmp_path):
+    assert read(tmp_path / "spam") == [""]
+
+
+@pytest.mark.all
+def test_read_some(tmp_path):
+    history = tmp_path / "spam"
+    history.write_text("eggs")
+    assert read(history) == ["eggs"]

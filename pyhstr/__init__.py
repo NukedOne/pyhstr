@@ -5,6 +5,11 @@ __version__ = "0.2.3"
 import curses
 import sys
 
+try:
+    import IPython
+except ModuleNotFoundError:
+    IPython = None
+
 from pyhstr.application import SHELL, main
 from pyhstr.utilities import Shell
 
@@ -22,9 +27,8 @@ def spam(arg):
 if SHELL != Shell.IPYTHON:
     sys.displayhook = spam
 else:
-    from IPython.core.magic import register_line_magic
 
-    @register_line_magic
+    @IPython.core.magic.register_line_magic
     def hh(line):  # pylint: disable=function-redefined,unused-argument
         """
         This line magic mirrors the behaviour of sys.displayhook

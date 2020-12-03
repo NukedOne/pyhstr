@@ -1,5 +1,7 @@
 # pyhstr
 
+![build status](https://github.com/xvm32/pyhstr/workflows/pyhstr/badge.svg) [![codecov](https://codecov.io/gh/xvm32/pyhstr/branch/master/graph/badge.svg?token=ZMY0VUX8WS)](https://codecov.io/gh/xvm32/pyhstr)
+
 Inspired by hstr, **pyhstr** is a history suggest box that lets you quickly search, navigate, and manage your Python shell history. At this point, it supports the standard Python shell, IPython, and bpython. The plan is to support ptpython as well, but some help is needed for that to happen (see [issue #7](https://github.com/xvm32/pyhstr/issues/7)).
 
 ## Installation

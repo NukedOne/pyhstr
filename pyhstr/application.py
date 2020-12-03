@@ -3,6 +3,11 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Pattern
 
+try:
+    import IPython
+except ModuleNotFoundError:
+    IPython = None
+
 from pyhstr.user_interface import UserInterface
 from pyhstr.utilities import (
     Shell,
@@ -57,7 +62,7 @@ class App:
         self.user_interface = UserInterface(self)
         self.raw_history: List[str] = self.get_history()
         self.commands: Dict[View, List[str]] = {
-            View.SORTED: sort(remove_duplicates(self.raw_history)),
+            View.SORTED: sort(self.raw_history),
             View.FAVORITES: sort(read(SHELLS[SHELL]["fav"])),
             View.ALL: remove_duplicates(self.raw_history),
         }
@@ -121,8 +126,6 @@ class App:
                 readline.write_history_file(str(SHELLS[Shell.STANDARD]["hist"]))
 
             elif SHELL == Shell.IPYTHON:
-                import IPython
-
                 IPython.get_ipython().history_manager.db.execute(
                     "DELETE FROM history WHERE source=(?)", (command,)
                 )
@@ -145,7 +148,7 @@ class App:
         elif answer == ord("n"):
             self.user_interface.populate_screen()
 
-    def add_to_or_remove_from_favorites(self, command: str) -> None:
+    def add_or_rm_fav(self, command: str) -> None:
         if command not in self.commands[View.FAVORITES]:
             self.commands[View.FAVORITES].append(command)
         else:
@@ -182,7 +185,7 @@ def main(stdscr) -> None:  # pylint: disable=too-many-statements
 
         elif user_input == CTRL_F:
             command = app.user_interface.page.get_selected()
-            app.add_to_or_remove_from_favorites(command)
+            app.add_or_rm_fav(command)
 
         elif user_input == TAB:
             command = app.user_interface.page.get_selected()

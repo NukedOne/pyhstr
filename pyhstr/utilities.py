@@ -6,6 +6,20 @@ import termios
 from pathlib import Path
 from typing import List, Optional
 
+try:
+    import IPython
+except ModuleNotFoundError:
+    IPython = None
+
+try:
+    from bpython.config import (
+        Struct,
+        get_config_home,
+        loadini,
+    )
+except ModuleNotFoundError:
+    Struct = get_config_home = loadini = None
+
 
 class Shell(enum.Enum):
     STANDARD = "python"
@@ -20,7 +34,11 @@ class View(enum.Enum):
 
 
 def sort(thing: List[str]) -> List[str]:
-    return [x for x, _ in collections.Counter(thing).most_common()]
+    positions = {entry: position for position, entry in enumerate(thing)}
+    frequencies = collections.Counter(thing)
+    thing.sort(key=lambda x: positions[x], reverse=True)
+    thing.sort(key=lambda x: frequencies[x], reverse=True)
+    return remove_duplicates(thing)
 
 
 def write(path: Optional[Path], thing: List[str]) -> None:
@@ -51,8 +69,6 @@ def remove_duplicates(thing: List[str]) -> List[str]:
 
 
 def get_ipython_history() -> List[str]:
-    import IPython
-
     return [
         entry
         for session_number, line_number, entry in IPython.get_ipython().history_manager.search()
@@ -60,25 +76,24 @@ def get_ipython_history() -> List[str]:
 
 
 def get_bpython_history_path() -> Optional[Path]:
-    try:
-        from bpython.config import Struct, get_config_home, loadini
-
+    if all(x is not None for x in {Struct, get_config_home, loadini}):
         config = Struct()
         loadini(config, Path(get_config_home()).expanduser() / "config")
         return Path(config.hist_file).expanduser()
-    except ImportError:
-        return None
+    return None
+
+
+def is_ipython():
+    return IPython.get_ipython() is not None
+
+
+def is_bpython():
+    return Path(sys.argv[0]).name == Shell.BPYTHON.value
 
 
 def detect_shell() -> Shell:
-    try:
-        import IPython
-
-        if IPython.get_ipython() is not None:
-            return Shell.IPYTHON
-    except ImportError:
-        pass
-    exe = Path(sys.argv[0]).name
-    if exe == Shell.BPYTHON.value:
+    if is_ipython():
+        return Shell.IPYTHON
+    elif is_bpython():
         return Shell.BPYTHON
     return Shell.STANDARD
