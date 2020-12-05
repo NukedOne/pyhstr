@@ -58,7 +58,6 @@ poetry install
 
 To run tests, mypy checks, and style checks, you need to have Pythons:
 
-- 3.6
 - 3.7
 - 3.8
 - 3.9
