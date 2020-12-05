@@ -34,11 +34,17 @@ class View(enum.Enum):
 
 
 def sort(thing: List[str]) -> List[str]:
-    positions = {entry: position for position, entry in enumerate(thing)}
-    frequencies = collections.Counter(thing)
-    thing.sort(key=lambda x: positions[x], reverse=True)
-    thing.sort(key=lambda x: frequencies[x], reverse=True)
-    return remove_duplicates(thing)
+    return remove_duplicates(
+        sorted(
+            sorted(
+                thing,
+                key=lambda item: {x: i for i, x in enumerate(thing)}[item],
+                reverse=True,
+            ),
+            key=lambda item: collections.Counter(thing)[item],
+            reverse=True,
+        )
+    )
 
 
 def write(path: Optional[Path], thing: List[str]) -> None:
@@ -76,16 +82,15 @@ def get_ipython_history() -> List[str]:
 
 
 def get_bpython_history_path() -> Optional[Path]:
-    if all(x is not None for x in {Struct, get_config_home, loadini}):
-        config = Struct()
-        loadini(config, Path(get_config_home()).expanduser() / "config")
-        return Path(config.hist_file).expanduser()
-    return None
+    if any(x is None for x in {Struct, get_config_home, loadini}):
+        return None
+    config = Struct()
+    loadini(config, Path(get_config_home()).expanduser() / "config")
+    return Path(config.hist_file).expanduser()
 
 
 def is_ipython():
-    if IPython is not None:
-        return IPython.get_ipython() is not None
+    return IPython.get_ipython() is not None
 
 
 def is_bpython():
