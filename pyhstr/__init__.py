@@ -7,7 +7,7 @@ import sys
 
 try:
     import IPython
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
     IPython = None
 
 from pyhstr.application import SHELL, main

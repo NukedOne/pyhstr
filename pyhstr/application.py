@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Pattern
 
 try:
     import IPython
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
     IPython = None
 
 from pyhstr.user_interface import UserInterface

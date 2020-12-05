@@ -8,7 +8,7 @@ from typing import List, Optional
 
 try:
     import IPython
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
     IPython = None
 
 try:
@@ -17,7 +17,7 @@ try:
         get_config_home,
         loadini,
     )
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
     Struct = get_config_home = loadini = None
 
 
@@ -84,7 +84,8 @@ def get_bpython_history_path() -> Optional[Path]:
 
 
 def is_ipython():
-    return IPython.get_ipython() is not None
+    if IPython is not None:
+        return IPython.get_ipython() is not None
 
 
 def is_bpython():
