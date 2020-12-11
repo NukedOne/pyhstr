@@ -65,11 +65,11 @@ class UserInterface:
     def init_color_pairs() -> None:
         mapping: Dict[int, List[int]] = {
             1: [curses.COLOR_WHITE, curses.COLOR_BLACK],
-            2: [0, 15],
-            3: [15, curses.COLOR_GREEN],
-            4: [15, curses.COLOR_RED],
-            5: [15, 0],
-            6: [curses.COLOR_RED, 0, curses.A_BOLD],
+            2: [curses.COLOR_BLACK, curses.COLOR_WHITE],
+            3: [curses.COLOR_WHITE, curses.COLOR_GREEN],
+            4: [curses.COLOR_WHITE, curses.COLOR_RED],
+            5: [curses.COLOR_CYAN, curses.COLOR_BLACK],
+            6: [curses.COLOR_RED, curses.COLOR_BLACK, curses.A_BOLD],
         }
 
         for idx, color in enumerate(COLORS, 1):
