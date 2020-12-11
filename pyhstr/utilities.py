@@ -92,7 +92,7 @@ def get_bpython_history_path() -> Optional[Path]:
 def is_ipython() -> bool:
     if IPython is not None:
         return IPython.get_ipython() is not None
-
+    return False
 
 def is_bpython() -> bool:
     return Path(sys.argv[0]).name == Shell.BPYTHON.value

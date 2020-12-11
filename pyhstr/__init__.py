@@ -1,6 +1,6 @@
 """History manager extension for the standard Python shell and IPython"""
 
-__version__ = "0.3.0"
+__version__ = "0.4.1"
 
 import curses
 import sys
