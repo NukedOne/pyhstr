@@ -80,7 +80,6 @@ class UserInterface:
                 COLORS[color] = curses.color_pair(idx)
 
     def populate_screen(self) -> None:
-        self.app.stdscr.clear()
         current_page = self.app.user_interface.page.value
         total_pages = self.app.user_interface.page.total_pages()
 
@@ -178,6 +177,7 @@ class Page:
 
         ... where -1+1 happens to cancel itself.
         """
+        self.app.stdscr.clear()
         self.value = ((self.value - 1 + direction) % self.total_pages()) + 1
 
     def total_pages(self) -> int:

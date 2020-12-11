@@ -87,6 +87,7 @@ class App:
             if self.create_search_regex().search(cmd)
         ]
 
+        self.stdscr.clear()
         self.user_interface.populate_screen()
 
     def create_search_regex(self) -> Pattern:
