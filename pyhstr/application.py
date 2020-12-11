@@ -234,3 +234,7 @@ def main(stdscr) -> None:  # pylint: disable=too-many-statements
             app.search_string += user_input
             app.commands = app.to_restore.copy()
             app.search()
+
+    stdscr.clear()
+    stdscr.refresh()
+    curses.doupdate()
