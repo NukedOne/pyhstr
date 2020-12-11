@@ -89,11 +89,12 @@ def get_bpython_history_path() -> Optional[Path]:
     return Path(config.hist_file).expanduser()
 
 
-def is_ipython():
-    return IPython.get_ipython() is not None
+def is_ipython() -> bool:
+    if IPython is not None:
+        return IPython.get_ipython() is not None
 
 
-def is_bpython():
+def is_bpython() -> bool:
     return Path(sys.argv[0]).name == Shell.BPYTHON.value
 
 
