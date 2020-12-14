@@ -1,7 +1,6 @@
 import collections
 import enum
 import fcntl
-import sys
 import termios
 from pathlib import Path
 from typing import List, Optional
@@ -95,7 +94,7 @@ def is_ipython() -> bool:
     return False
 
 def is_bpython() -> bool:
-    return Path(sys.argv[0]).name == Shell.BPYTHON.value
+    return help.__module__.startswith("bpython")
 
 
 def detect_shell() -> Shell:

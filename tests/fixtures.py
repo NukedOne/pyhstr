@@ -7,7 +7,6 @@ from pathlib import Path
 import os
 import random
 import string
-import sys
 import pytest
 
 from pyhstr import (
@@ -99,7 +98,7 @@ def fake_ipython(monkeypatch):
 @pytest.fixture
 def fake_bpython(monkeypatch):
     monkeypatch.setattr(application, "SHELL", Shell.BPYTHON)
-    monkeypatch.setattr(sys, "argv", ["bpython"])
+    monkeypatch.setattr(help, "__module__", "bpython")
     monkeypatch.setitem(
         application.SHELLS,
         Shell.BPYTHON,
