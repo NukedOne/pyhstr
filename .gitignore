@@ -6,7 +6,6 @@ __pycache__
 .mypy_cache/
 .pytest_cache/
 .tox
-*.lock
 .coverage
 .python-version
 htmlcov/
