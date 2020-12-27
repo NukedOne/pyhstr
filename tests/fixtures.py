@@ -12,16 +12,29 @@ import pytest
 from pyhstr import (
     application,
     utilities,
+    user_interface,
 )
 from pyhstr.utilities import Shell, read
+
+
+class FakeCurses:
+    LINES = 10
+    COLS = 80
+
+    class error(Exception):
+        pass
 
 
 class FakeStdscr:
     def __init__(self):
         self.addstred = []
+        self.addched = []
 
     def addstr(self, *args):
         self.addstred.append(args)
+
+    def addch(self, *args):
+        self.addched.append(args)
 
     def box(self, *args):
         pass
@@ -46,6 +59,22 @@ class FakeStdscr:
 
     def nodelay(self, *args):
         pass
+
+    def attron(self, *args):
+        pass
+
+    def attroff(self, *args):
+        pass
+
+    def getmaxyx(self):
+        return FakeCurses.LINES, FakeCurses.COLS
+
+
+@pytest.fixture
+def fake_curses(monkeypatch):
+    fc = FakeCurses()
+    monkeypatch.setattr(application, "curses", fc)
+    monkeypatch.setattr(user_interface, "curses", fc)
 
 
 @pytest.fixture

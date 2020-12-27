@@ -1,6 +1,7 @@
 # pylint: disable=unused-argument
 # pylint: disable=unused-import
 # pylint: disable=redefined-outer-name
+# pylint: disable=too-many-arguments
 
 
 import os
@@ -14,12 +15,68 @@ from pyhstr.utilities import (
 )
 
 from tests.fixtures import (
+    fake_curses,
     fake_stdscr,
     fake_bpython,
     fake_ipython,
     fake_standard,
     params,
 )
+
+
+@pytest.mark.all
+@pytest.mark.parametrize(
+    "search_string, expected, regex_mode, case_sensitivity",
+    [
+        [
+            "spam",
+            ['"spam".encode("utf-8")', 'print("SPAM")'],
+            False,
+            False,
+        ],
+        [
+            "SPAM",
+            ['print("SPAM")'],
+            False,
+            True,
+        ],
+        [
+            "spam",
+            ['"spam".encode("utf-8")'],
+            False,
+            True,
+        ],
+        [
+            "[0-9]+",
+            [
+                '"spam".encode("utf-8")',
+                "[x for x in range(100) if x % 2]",
+                "1 + 1 == 2",
+                "tau == 2 * pi",
+                "4 / 2",
+                "2 ** 10",
+                "[x for x in range(100)]",
+            ],
+            True,
+            False,
+        ],
+    ],
+)
+def test_search(
+    search_string,
+    expected,
+    regex_mode,
+    case_sensitivity,
+    fake_stdscr,
+    fake_curses,
+    fake_standard,
+):
+    app = App(fake_stdscr)
+    app.search_string = search_string
+    app.regex_mode = regex_mode
+    app.case_sensitivity = case_sensitivity
+    app.search()
+    assert all(x in expected for x in app.commands[app.view])
 
 
 @pytest.mark.parametrize("shell, fixture", params)

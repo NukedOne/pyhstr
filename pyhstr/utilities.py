@@ -93,6 +93,7 @@ def is_ipython() -> bool:
         return IPython.get_ipython() is not None
     return False
 
+
 def is_bpython() -> bool:
     return help.__module__.startswith("bpython")
 
