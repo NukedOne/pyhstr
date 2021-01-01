@@ -4,7 +4,7 @@ from typing import Dict, List, Union, TYPE_CHECKING
 from pyhstr.utilities import View
 
 if TYPE_CHECKING:
-    from pyhstr.application import App   # pylint: disable=cyclic-import
+    from pyhstr.application import App  # pylint: disable=cyclic-import
 
 
 COLORS: Dict[str, int] = {
@@ -42,13 +42,11 @@ DISPLAY: Dict[str, Dict[Union[View, bool], str]] = {
 
 
 class UserInterface:
-    def __init__(self, app: 'App'):
+    def __init__(self, app: "App"):
         self.app = app
         self.page = Page(self.app)
 
-    def _addstr(
-            self, y_coord: int, x_coord: int, text: str, color_info: int
-    ) -> None:
+    def _addstr(self, y_coord: int, x_coord: int, text: str, color_info: int) -> None:
         """
         Works around curses' limitation of drawing at bottom right corner
         of the screen, as seen on https://stackoverflow.com/q/36387625
@@ -140,15 +138,19 @@ class UserInterface:
 
     def get_matched_chars(self, command: str) -> List[int]:
         regex = self.app.create_search_regex()
-        return [] if regex is None else [
-            cmd_idx
-            for m in regex.finditer(command)
-            for cmd_idx in range(m.start(), m.end())
-        ]
+        return (
+            []
+            if regex is None
+            else [
+                cmd_idx
+                for m in regex.finditer(command)
+                for cmd_idx in range(m.start(), m.end())
+            ]
+        )
 
 
 class Page:
-    def __init__(self, app: 'App'):
+    def __init__(self, app: "App"):
         self.value = 1
         self.app = app
         self.selected = SelectedCmd(self)

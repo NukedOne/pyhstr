@@ -1,7 +1,7 @@
 import curses
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Pattern
+from typing import Any, Dict, List, Optional, Pattern, TYPE_CHECKING
 
 try:
     import IPython
@@ -21,6 +21,11 @@ from pyhstr.utilities import (
     sort,
     write,
 )
+
+if TYPE_CHECKING:
+    from _curses import _CursesWindow  # pylint: disable=no-name-in-module
+else:
+    _CursesWindow = Any
 
 SHELL = detect_shell()
 
@@ -57,7 +62,7 @@ DEL = curses.KEY_DC
 
 
 class App:
-    def __init__(self, stdscr: curses._CursesWindow):
+    def __init__(self, stdscr: _CursesWindow):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
         self.raw_history: List[str] = self.get_history()
@@ -85,9 +90,7 @@ class App:
 
         if search_regex is not None:
             self.commands[self.view] = [
-                cmd
-                for cmd in self.commands[self.view]
-                if search_regex.search(cmd)
+                cmd for cmd in self.commands[self.view] if search_regex.search(cmd)
             ]
             self.stdscr.clear()
             self.user_interface.populate_screen()
@@ -170,7 +173,7 @@ class App:
         self.view = View((self.view.value + 1) % 3)
 
 
-def main(stdscr: curses._CursesWindow) -> None:  # pylint: disable=too-many-statements,protected-access
+def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
     app = App(stdscr)
     app.user_interface.init_color_pairs()
     app.user_interface.populate_screen()
