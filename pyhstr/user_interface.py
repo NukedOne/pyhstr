@@ -1,8 +1,10 @@
 import curses
 import sys
-from typing import Dict, List, Optional, Union
-from pyhstr.application import App
+from typing import Dict, List, Union, TYPE_CHECKING
 from pyhstr.utilities import View
+
+if TYPE_CHECKING:
+    from pyhstr.application import App
 
 
 COLORS: Dict[str, int] = {
@@ -40,7 +42,7 @@ DISPLAY: Dict[str, Dict[Union[View, bool], str]] = {
 
 
 class UserInterface:
-    def __init__(self, app: App):
+    def __init__(self, app: 'App'):
         self.app = app
         self.page = Page(self.app)
 
@@ -146,7 +148,7 @@ class UserInterface:
 
 
 class Page:
-    def __init__(self, app: App):
+    def __init__(self, app: 'App'):
         self.value = 1
         self.app = app
         self.selected = SelectedCmd(self)
