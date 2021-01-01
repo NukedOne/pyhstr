@@ -57,7 +57,7 @@ DEL = curses.KEY_DC
 
 
 class App:
-    def __init__(self, stdscr):
+    def __init__(self, stdscr: curses._CursesWindow):
         self.stdscr = stdscr
         self.user_interface = UserInterface(self)
         self.raw_history: List[str] = self.get_history()
@@ -170,7 +170,7 @@ class App:
         self.view = View((self.view.value + 1) % 3)
 
 
-def main(stdscr) -> None:  # pylint: disable=too-many-statements
+def main(stdscr: curses._CursesWindow) -> None:  # pylint: disable=too-many-statements
     app = App(stdscr)
     app.user_interface.init_color_pairs()
     app.user_interface.populate_screen()
@@ -182,6 +182,8 @@ def main(stdscr) -> None:  # pylint: disable=too-many-statements
             continue
         except KeyboardInterrupt:
             break
+
+        # user_input is Union[int, str], sometimes isinstance needed to make mypy happy
 
         if user_input == CTRL_E:
             app.toggle_regex_mode()
@@ -216,10 +218,12 @@ def main(stdscr) -> None:  # pylint: disable=too-many-statements
             app.user_interface.populate_screen()
 
         elif user_input in {curses.KEY_UP, curses.KEY_DOWN}:
+            assert isinstance(user_input, int)
             app.user_interface.page.selected.move(KEY_BINDINGS[user_input])
             app.user_interface.populate_screen()
 
         elif user_input in {curses.KEY_NPAGE, curses.KEY_PPAGE}:
+            assert isinstance(user_input, int)
             app.user_interface.page.turn(KEY_BINDINGS[user_input])
             app.user_interface.populate_screen()
 
@@ -235,6 +239,7 @@ def main(stdscr) -> None:  # pylint: disable=too-many-statements
             app.delete_from_history(command)
 
         else:
+            assert isinstance(user_input, str)
             app.search_string += user_input
             app.commands = app.to_restore.copy()
             app.search()

@@ -1,17 +1,18 @@
 import curses
 import sys
 from typing import Dict, List, Optional, Union
+from pyhstr.application import App
 from pyhstr.utilities import View
 
 
-COLORS: Dict[str, Optional[int]] = {
+COLORS: Dict[str, int] = {
     # yet to be initialized
-    "normal": None,
-    "highlighted-white": None,
-    "highlighted-green": None,
-    "highlighted-red": None,
-    "white": None,
-    "bold-red": None,
+    "normal": 0,
+    "highlighted-white": 0,
+    "highlighted-green": 0,
+    "highlighted-red": 0,
+    "white": 0,
+    "bold-red": 0,
 }
 
 PYHSTR_LABEL = (
@@ -39,12 +40,12 @@ DISPLAY: Dict[str, Dict[Union[View, bool], str]] = {
 
 
 class UserInterface:
-    def __init__(self, app):
+    def __init__(self, app: App):
         self.app = app
         self.page = Page(self.app)
 
     def _addstr(
-        self, y_coord: int, x_coord: int, text: str, color_info: Optional[int]
+        self, y_coord: int, x_coord: int, text: str, color_info: int
     ) -> None:
         """
         Works around curses' limitation of drawing at bottom right corner
@@ -145,7 +146,7 @@ class UserInterface:
 
 
 class Page:
-    def __init__(self, app):
+    def __init__(self, app: App):
         self.value = 1
         self.app = app
         self.selected = SelectedCmd(self)
@@ -197,7 +198,7 @@ class Page:
 
 
 class SelectedCmd:  # pylint: disable=too-few-public-methods
-    def __init__(self, page):
+    def __init__(self, page: Page):
         self.value = 0
         self.page = page
 

@@ -17,7 +17,7 @@ hh = object()
 original = sys.displayhook
 
 
-def spam(arg):
+def spam(arg: object) -> None:
     if arg == hh:
         curses.wrapper(main)
     else:
@@ -29,7 +29,7 @@ if SHELL != Shell.IPYTHON:
 else:
 
     @IPython.core.magic.register_line_magic
-    def hh(line):  # pylint: disable=function-redefined,unused-argument
+    def hh(line: str) -> None:  # pylint: disable=function-redefined,unused-argument
         """
         This line magic mirrors the behaviour of sys.displayhook
         in the regular Python shell. Use %hh to invoke.
