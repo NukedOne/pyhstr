@@ -238,7 +238,7 @@ def main(stdscr: curses._CursesWindow) -> None:  # pylint: disable=too-many-stat
             command = app.user_interface.page.get_selected()
             app.delete_from_history(command)
 
-        elif isinstance(user_input, int):
+        elif isinstance(user_input, str):
             # not another special int character like curses.KEY_UP
             app.search_string += user_input
             app.commands = app.to_restore.copy()
