@@ -4,7 +4,7 @@ from typing import Dict, List, Union, TYPE_CHECKING
 from pyhstr.utilities import View
 
 if TYPE_CHECKING:
-    from pyhstr.application import App
+    from pyhstr.application import App   # pylint: disable=cyclic-import
 
 
 COLORS: Dict[str, int] = {
@@ -47,7 +47,7 @@ class UserInterface:
         self.page = Page(self.app)
 
     def _addstr(
-        self, y_coord: int, x_coord: int, text: str, color_info: int
+            self, y_coord: int, x_coord: int, text: str, color_info: int
     ) -> None:
         """
         Works around curses' limitation of drawing at bottom right corner

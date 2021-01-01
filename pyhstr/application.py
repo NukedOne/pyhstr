@@ -170,7 +170,7 @@ class App:
         self.view = View((self.view.value + 1) % 3)
 
 
-def main(stdscr: curses._CursesWindow) -> None:  # pylint: disable=too-many-statements
+def main(stdscr: curses._CursesWindow) -> None:  # pylint: disable=too-many-statements,protected-access
     app = App(stdscr)
     app.user_interface.init_color_pairs()
     app.user_interface.populate_screen()
