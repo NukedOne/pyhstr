@@ -136,9 +136,10 @@ class UserInterface:
         self._addstr(0, 1, PS1 + self.app.search_string, COLORS["normal"])
 
     def get_matched_chars(self, command: str) -> List[int]:
-        return [
+        regex = self.app.create_search_regex()
+        return [] if regex is None else [
             cmd_idx
-            for m in self.app.create_search_regex().finditer(command)
+            for m in regex.finditer(command)
             for cmd_idx in range(m.start(), m.end())
         ]
 

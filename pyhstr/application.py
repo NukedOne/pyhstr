@@ -83,13 +83,12 @@ class App:
 
         search_regex = self.create_search_regex()
 
-        self.commands[self.view] = [
-            cmd
-            for cmd in self.commands[self.view]
-            if search_regex.search(cmd)
-        ]
-
-        if search_regex.pattern != r"this regex doesn't match anything^":
+        if search_regex is not None:
+            self.commands[self.view] = [
+                cmd
+                for cmd in self.commands[self.view]
+                if search_regex.search(cmd)
+            ]
             self.stdscr.clear()
             self.user_interface.populate_screen()
         else:
@@ -98,7 +97,7 @@ class App:
             self.user_interface.populate_screen()
             self.user_interface.show_regex_error()
 
-    def create_search_regex(self) -> Pattern:
+    def create_search_regex(self) -> Optional[Pattern]:
         try:
             search_string = (
                 self.search_string if self.regex_mode else re.escape(self.search_string)
@@ -107,7 +106,7 @@ class App:
                 search_string, re.IGNORECASE if not self.case_sensitivity else 0
             )
         except re.error:
-            return re.compile(r"this regex doesn't match anything^")  # thanks Akuli
+            return None
 
     def delete_from_history(self, command: str) -> None:
         self.user_interface.prompt_for_deletion(command)
