@@ -10,6 +10,7 @@ import string
 import pytest
 
 from pyhstr import (
+    __main__,
     application,
     utilities,
     user_interface,
@@ -95,7 +96,7 @@ def fake_readline(monkeypatch):
 @pytest.fixture
 def fake_curses(monkeypatch):
     fc = FakeCurses()
-    monkeypatch.setattr(application, "curses", fc)
+    monkeypatch.setattr(__main__, "curses", fc)
     monkeypatch.setattr(user_interface, "curses", fc)
 
 

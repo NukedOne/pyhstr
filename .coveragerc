@@ -2,3 +2,4 @@
 source = pyhstr
 omit =
     pyhstr/__init__.py
+    pyhstr/__main__.py

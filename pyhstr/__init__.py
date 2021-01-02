@@ -10,7 +10,8 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     IPython = None
 
-from pyhstr.application import SHELL, main
+from pyhstr.__main__ import main
+from pyhstr.application import SHELL
 from pyhstr.utilities import Shell
 
 hh = object()
