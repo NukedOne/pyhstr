@@ -113,9 +113,7 @@ class App:
         except re.error:
             return None
 
-    def delete_python_history(
-        self, command: str
-    ) -> None:  # pylint: disable=no-self-use
+    def delete_python_history(self, command: str) -> None:  # pylint: disable=no-self-use
         readline_history = [
             readline.get_history_item(i + 1)
             for i in range(readline.get_current_history_length())
@@ -128,9 +126,7 @@ class App:
 
         readline.write_history_file(str(SHELLS[Shell.STANDARD]["hist"]))
 
-    def delete_ipython_history(
-        self, command: str
-    ) -> None:  # pylint: disable=no-self-use
+    def delete_ipython_history(self, command: str) -> None:  # pylint: disable=no-self-use
         IPython.get_ipython().history_manager.db.execute(
             "DELETE FROM history WHERE source=(?)", (command,)
         )
