@@ -1,5 +1,7 @@
 import curses
 import re
+import readline
+
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Pattern, TYPE_CHECKING
 
@@ -111,37 +113,43 @@ class App:
         except re.error:
             return None
 
+    def delete_python_history(
+        self, command: str
+    ) -> None:  # pylint: disable=no-self-use
+        readline_history = [
+            readline.get_history_item(i + 1)
+            for i in range(readline.get_current_history_length())
+        ]
+
+        cmd_indexes = [i for i, cmd in enumerate(readline_history) if cmd == command]
+
+        for cmd_idx in reversed(cmd_indexes):
+            readline.remove_history_item(cmd_idx)
+
+        readline.write_history_file(str(SHELLS[Shell.STANDARD]["hist"]))
+
+    def delete_ipython_history(
+        self, command: str
+    ) -> None:  # pylint: disable=no-self-use
+        IPython.get_ipython().history_manager.db.execute(
+            "DELETE FROM history WHERE source=(?)", (command,)
+        )
+
+    def delete_bpython_history(self, command: str) -> None:
+        self.raw_history = [cmd for cmd in self.raw_history if cmd != command]
+        write(SHELLS[Shell.BPYTHON]["hist"], self.raw_history)
+
     def delete_from_history(self, command: str) -> None:
         self.user_interface.prompt_for_deletion(command)
         answer = self.stdscr.getch()
 
         if answer == ord("y"):
             if SHELL == Shell.STANDARD:
-                import readline
-
-                readline_history = [
-                    readline.get_history_item(i + 1)
-                    for i in range(readline.get_current_history_length())
-                ]
-
-                cmd_indexes = [
-                    i for i, cmd in enumerate(readline_history) if cmd == command
-                ]
-
-                for cmd_idx in reversed(cmd_indexes):
-                    readline.remove_history_item(cmd_idx)
-
-                readline.write_history_file(str(SHELLS[Shell.STANDARD]["hist"]))
-
+                self.delete_python_history(command)
             elif SHELL == Shell.IPYTHON:
-                IPython.get_ipython().history_manager.db.execute(
-                    "DELETE FROM history WHERE source=(?)", (command,)
-                )
-
+                self.delete_ipython_history(command)
             elif SHELL == Shell.BPYTHON:
-                self.raw_history = [cmd for cmd in self.raw_history if cmd != command]
-                write(SHELLS[Shell.BPYTHON]["hist"], self.raw_history)
-
+                self.delete_bpython_history(command)
             else:
                 pass  # future implementations
 

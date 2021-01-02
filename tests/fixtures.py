@@ -14,7 +14,24 @@ from pyhstr import (
     utilities,
     user_interface,
 )
-from pyhstr.utilities import Shell, read
+from pyhstr.utilities import Shell, read, write
+
+
+class FakeReadline:
+    def __init__(self):
+        self.history = read("tests/history/fake_python_history")
+
+    def get_history_item(self, i):
+        return self.history[i - 1]
+
+    def remove_history_item(self, i):
+        self.history.pop(i)
+
+    def write_history_file(self, path):
+        write(path, self.history)
+
+    def get_current_history_length(self):
+        return len(self.history)
 
 
 class FakeCurses:
@@ -68,6 +85,11 @@ class FakeStdscr:
 
     def getmaxyx(self):
         return FakeCurses.LINES, FakeCurses.COLS
+
+
+@pytest.fixture
+def fake_readline(monkeypatch):
+    monkeypatch.setattr(application, "readline", FakeReadline())
 
 
 @pytest.fixture

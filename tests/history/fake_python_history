@@ -1,6 +1,5 @@
 import math
 from math import sqrt
-ord("r")
 from math import sin
 [x for x in range(100) if x % 2]
 import pathlib
@@ -12,7 +11,6 @@ ord("p")
 1 + 1 == 2
 from pyhstr import hh
 tau == 2 * pi
-import subprocess
 subprocess.run(['ls', '-la'])
 "spam".encode("utf-8")
 " Hello, world ".strip()

@@ -5,6 +5,7 @@
 
 
 import os
+import shutil
 import pytest
 from pyhstr import application
 from pyhstr.application import App
@@ -19,9 +20,30 @@ from tests.fixtures import (
     fake_stdscr,
     fake_bpython,
     fake_ipython,
+    fake_readline,
     fake_standard,
     params,
 )
+
+
+@pytest.mark.python
+@pytest.mark.parametrize("command", ["1 + 1 == 2", 'ord("r")', "print(sys.argv)"])
+def test_delete_python_history(
+    command, fake_stdscr, fake_standard, fake_readline, tmp_path
+):
+    shutil.copyfile("tests/history/fake_python_history", tmp_path / "history")
+    app = App(fake_stdscr)
+    app.delete_python_history(command)
+    assert command not in read("tests/history/fake_python_history")
+    shutil.move(tmp_path / "history", "tests/history/fake_python_history")
+
+
+@pytest.mark.all
+def test_create_search_regex_none(fake_stdscr):
+    app = App(fake_stdscr)
+    app.regex_mode = True
+    app.search_string = "print("
+    assert app.create_search_regex() is None
 
 
 @pytest.mark.all
