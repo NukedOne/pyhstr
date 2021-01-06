@@ -50,6 +50,8 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
         elif user_input == CTRL_F:
             command = app.user_interface.page.get_selected()
             app.add_or_rm_fav(command)
+            app.stdscr.clear()
+            app.user_interface.populate_screen()
 
         elif user_input == TAB:
             command = app.user_interface.page.get_selected()
@@ -72,6 +74,7 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
         elif user_input == CTRL_SLASH:
             app.toggle_view()
             app.user_interface.page.selected.value = 0
+            app.stdscr.clear()
             app.user_interface.populate_screen()
 
         elif user_input in {curses.KEY_UP, curses.KEY_DOWN}:
