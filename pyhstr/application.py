@@ -119,36 +119,27 @@ class App:
         write(SHELLS[Shell.BPYTHON]["hist"], self.raw_history)
 
     def delete_from_history(self, command: str) -> None:
-        self.user_interface.prompt_for_deletion(command)
-        answer = self.stdscr.getch()
+        if SHELL == Shell.STANDARD:
+            self.delete_python_history(command)
+        elif SHELL == Shell.IPYTHON:
+            self.delete_ipython_history(command)
+        elif SHELL == Shell.BPYTHON:
+            self.delete_bpython_history(command)
+        else:
+            pass  # future implementations
 
-        if answer == ord("y"):
-            if SHELL == Shell.STANDARD:
-                self.delete_python_history(command)
-            elif SHELL == Shell.IPYTHON:
-                self.delete_ipython_history(command)
-            elif SHELL == Shell.BPYTHON:
-                self.delete_bpython_history(command)
-            else:
-                pass  # future implementations
+        for view in self.commands.values():
+            for cmd in view:
+                if cmd == command:
+                    view.remove(cmd)
 
-            for view in self.commands.values():
-                for cmd in view:
-                    if cmd == command:
-                        view.remove(cmd)
-
-            self.to_restore = self.commands.copy()
-            self.user_interface.populate_screen()
-
-        elif answer == ord("n"):
-            self.user_interface.populate_screen()
+        self.to_restore = self.commands.copy()
 
     def add_or_rm_fav(self, command: str) -> None:
         if command not in self.commands[View.FAVORITES]:
             self.commands[View.FAVORITES].append(command)
         else:
             self.commands[View.FAVORITES].remove(command)
-        write(SHELLS[SHELL]["fav"], self.commands[View.FAVORITES])
 
     def toggle_regex_mode(self) -> None:
         self.regex_mode = not self.regex_mode
