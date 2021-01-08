@@ -22,7 +22,7 @@ from pyhstr.utilities import (
     write,
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from _curses import _CursesWindow  # pylint: disable=no-name-in-module
 else:
     _CursesWindow = Any
@@ -140,6 +140,8 @@ class App:
             self.commands[View.FAVORITES].append(command)
         else:
             self.commands[View.FAVORITES].remove(command)
+        write(SHELLS[SHELL]["fav"], self.commands[View.FAVORITES])
+
 
     def toggle_regex_mode(self) -> None:
         self.regex_mode = not self.regex_mode

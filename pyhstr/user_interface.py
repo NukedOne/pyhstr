@@ -200,6 +200,11 @@ class Page:
     def get_selected(self) -> str:
         return self.get_commands()[self.selected.value]
 
+    def retain_selection(self) -> None:
+        page_size = self.get_size() - 1
+        if self.selected.value == page_size:
+            self.selected.move(-1)
+
 
 class SelectedCmd:  # pylint: disable=too-few-public-methods
     def __init__(self, page: Page):
@@ -212,7 +217,7 @@ class SelectedCmd:  # pylint: disable=too-few-public-methods
 
         try:
             self.value %= page_size
-        except ZeroDivisionError:
+        except ZeroDivisionError:  # pragma: no cover
             return None
 
         if direction == 1 and self.value == 0:

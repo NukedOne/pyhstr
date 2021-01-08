@@ -1,8 +1,8 @@
 import curses
 from typing import Any, TYPE_CHECKING
 
-from pyhstr.application import App, View, SHELLS, SHELL
-from pyhstr.utilities import echo, write
+from pyhstr.application import App, View
+from pyhstr.utilities import echo
 
 if TYPE_CHECKING:
     from _curses import _CursesWindow  # pylint: disable=no-name-in-module
@@ -50,12 +50,8 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
         elif user_input == CTRL_F:
             command = app.user_interface.page.get_selected()
             if app.view == View.FAVORITES:
-                page_size = app.user_interface.page.get_size() - 1
-                selected = app.user_interface.page.selected
-                if selected.value == page_size:
-                    selected.move(-1)
+                app.user_interface.page.retain_selection()
             app.add_or_rm_fav(command)
-            write(SHELLS[SHELL]["fav"], app.commands[View.FAVORITES])
             app.stdscr.clear()
             app.user_interface.populate_screen()
 
@@ -106,10 +102,7 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
             app.user_interface.prompt_for_deletion(command)
             answer = app.stdscr.getch()
             if answer == ord("y"):
-                page_size = app.user_interface.page.get_size() - 1
-                selected = app.user_interface.page.selected
-                if selected.value == page_size:
-                    selected.move(-1)
+                app.user_interface.page.retain_selection()
                 app.delete_from_history(command)
             app.stdscr.clear()
             app.user_interface.populate_screen()
