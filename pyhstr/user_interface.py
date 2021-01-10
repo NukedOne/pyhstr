@@ -3,7 +3,7 @@ import sys
 from typing import Dict, List, Union, TYPE_CHECKING
 from pyhstr.utilities import View
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from pyhstr.application import App  # pylint: disable=cyclic-import
 
 
@@ -82,7 +82,7 @@ class UserInterface:
 
     def populate_screen(self) -> None:
         current_page = self.app.user_interface.page.value
-        total_pages = self.app.user_interface.page.total_pages()
+        total_pages = self.total_pages()
 
         status = PYHSTR_STATUS.format(
             DISPLAY["view"][self.app.view],
@@ -136,6 +136,9 @@ class UserInterface:
         self._addstr(1, 1, prompt, COLORS["highlighted-red"])
         self._addstr(0, 1, PS1 + self.app.search_string, COLORS["normal"])
 
+    def total_pages(self) -> int:
+        return len(range(0, len(self.app.commands[self.app.view]), curses.LINES - 3))
+
     def get_matched_chars(self, command: str) -> List[int]:
         regex = self.app.create_search_regex()
         return (
@@ -184,10 +187,8 @@ class Page:
         ... where -1+1 happens to cancel itself.
         """
         self.app.stdscr.clear()
-        self.value = ((self.value - 1 + direction) % self.total_pages()) + 1
+        self.value = ((self.value - 1 + direction) % self.app.user_interface.total_pages()) + 1
 
-    def total_pages(self) -> int:
-        return len(range(0, len(self.app.commands[self.app.view]), curses.LINES - 3))
 
     def get_size(self) -> int:
         return len(self.get_commands())
