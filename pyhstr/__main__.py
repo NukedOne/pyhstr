@@ -36,6 +36,8 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
         try:
             user_input = app.stdscr.get_wch()
         except curses.error:
+            app.stdscr.clear()
+            app.user_interface.populate_screen()
             continue
         except KeyboardInterrupt:
             break
@@ -106,7 +108,6 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
                 app.delete_from_history(command)
             app.stdscr.clear()
             app.user_interface.populate_screen()
-
 
         elif isinstance(user_input, str):
             # not another special int character like curses.KEY_UP

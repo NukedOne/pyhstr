@@ -6,6 +6,7 @@
 from pathlib import Path
 import os
 import random
+import shutil
 import string
 import pytest
 
@@ -33,7 +34,6 @@ class FakeReadline:
 
     def get_current_history_length(self):
         return len(self.history)
-
 
 class FakeCurses:
     LINES = 10
@@ -88,6 +88,10 @@ class FakeStdscr:
         return FakeCurses.LINES, FakeCurses.COLS
 
 
+def fake_get_terminal_size(*args, **kwargs):
+    return FakeCurses.COLS, FakeCurses.LINES
+
+
 @pytest.fixture
 def fake_readline(monkeypatch):
     monkeypatch.setattr(application, "readline", FakeReadline())
@@ -98,6 +102,7 @@ def fake_curses(monkeypatch):
     fc = FakeCurses()
     monkeypatch.setattr(__main__, "curses", fc)
     monkeypatch.setattr(user_interface, "curses", fc)
+    monkeypatch.setattr(shutil, "get_terminal_size", fake_get_terminal_size)
 
 
 @pytest.fixture

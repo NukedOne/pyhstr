@@ -1,6 +1,8 @@
 import curses
+import shutil
 import sys
 from typing import Dict, List, Union, TYPE_CHECKING
+
 from pyhstr.utilities import View
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -137,7 +139,11 @@ class UserInterface:
         self._addstr(0, 1, PS1 + self.app.search_string, COLORS["normal"])
 
     def total_pages(self) -> int:
-        return len(range(0, len(self.app.commands[self.app.view]), curses.LINES - 3))
+        # Since curses does not update LINES and COLS on resize,
+        # we need to get get correct terminal size after resize,
+        # which is only possible with shutil.get_terminal_size().
+        _, y = shutil.get_terminal_size()
+        return len(range(0, len(self.app.commands[self.app.view]), y - 3))
 
     def get_matched_chars(self, command: str) -> List[int]:
         regex = self.app.create_search_regex()
@@ -194,8 +200,12 @@ class Page:
         return len(self.get_commands())
 
     def get_commands(self) -> List[str]:
+        # Since curses does not update LINES and COLS on resize,
+        # we need to get get correct terminal size after resize,
+        # which is only possible with shutil.get_terminal_size().
+        _, y = shutil.get_terminal_size()
         return self.app.commands[self.app.view][
-            (self.value - 1) * (curses.LINES - 3) : self.value * (curses.LINES - 3)
+            (self.value - 1) * (y - 3) : self.value * (y - 3)
         ]
 
     def get_selected(self) -> str:
