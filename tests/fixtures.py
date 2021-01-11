@@ -39,8 +39,25 @@ class FakeCurses:
     LINES = 10
     COLS = 80
 
+    COLOR_BLACK = 0
+    COLOR_RED = 1
+    COLOR_GREEN = 2
+    COLOR_CYAN = 6
+    COLOR_WHITE = 7
+
+    A_BOLD = 1 << (13 + 8)
+
     class error(Exception):
         pass
+
+    def __init__(self):
+        self.color_pairs = {}
+
+    def init_pair(self, idx, fg, bg):
+        self.color_pairs[idx] = (fg, bg)
+
+    def color_pair(self, idx):
+        return idx << (0 + 8)
 
 
 class FakeStdscr:
@@ -103,6 +120,7 @@ def fake_curses(monkeypatch):
     monkeypatch.setattr(__main__, "curses", fc)
     monkeypatch.setattr(user_interface, "curses", fc)
     monkeypatch.setattr(shutil, "get_terminal_size", fake_get_terminal_size)
+    return fc
 
 
 @pytest.fixture

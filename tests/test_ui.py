@@ -8,6 +8,7 @@ import pytest
 
 from pyhstr.application import App
 from pyhstr.user_interface import (
+    COLORS,
     Page,
     SelectedCmd,
     UserInterface,
@@ -133,3 +134,11 @@ def test_show_regex_error(fake_curses, fake_stdscr, fake_standard):
     assert (
         1, 1, "Invalid regex. Try again.", 0
      ) in fake_stdscr.addstred
+
+
+@pytest.mark.all
+def test_init_color_pairs(fake_curses, fake_stdscr):
+    user_interface = UserInterface(App(fake_stdscr))
+    user_interface.init_color_pairs()
+    for v in COLORS.values():
+        assert v != 0

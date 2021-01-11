@@ -1,4 +1,4 @@
-name: pyhstr
+name: CI
 
 on: [push, pull_request]
 
@@ -24,7 +24,3 @@ jobs:
       run: |
         poetry install
         poetry run tox
-    - name: Upload to codecov.io
-      uses: codecov/codecov-action@v1
-      with:
-        fail_ci_if_error: true
