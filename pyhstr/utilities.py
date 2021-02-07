@@ -76,7 +76,8 @@ def remove_duplicates(thing: List[str]) -> List[str]:
 def get_ipython_history() -> List[str]:
     return [
         entry
-        for session_number, line_number, entry in IPython.get_ipython().history_manager.search()
+        for session_number, line_number, entry
+        in IPython.get_ipython().history_manager.search()
     ]
 
 
@@ -88,19 +89,17 @@ def get_bpython_history_path() -> Optional[Path]:
     return Path(config.hist_file).expanduser()
 
 
-def is_ipython() -> bool:
-    if IPython is not None:
-        return IPython.get_ipython() is not None
-    return False
-
-
-def is_bpython() -> bool:
-    return help.__module__.startswith("bpython")
-
-
 def detect_shell() -> Shell:
-    if is_ipython():
+    if _is_ipython():
         return Shell.IPYTHON
-    elif is_bpython():
+    elif _is_bpython():
         return Shell.BPYTHON
     return Shell.STANDARD
+
+
+def _is_ipython() -> bool:
+    return IPython is not None and IPython.get_ipython() is not None
+
+
+def _is_bpython() -> bool:
+    return help.__module__.startswith("bpython")
