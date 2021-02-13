@@ -1,12 +1,20 @@
 import curses
 import shutil
 import sys
-from typing import Dict, List, Union, TYPE_CHECKING
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Union,
+)
 
 from pyhstr.utilities import View
 
 if TYPE_CHECKING:  # pragma: no cover
     from pyhstr.application import App  # pylint: disable=cyclic-import
+else:
+    App = Any
 
 
 COLORS: Dict[str, int] = {
@@ -44,7 +52,7 @@ DISPLAY: Dict[str, Dict[Union[View, bool], str]] = {
 
 
 class UserInterface:
-    def __init__(self, app: "App"):
+    def __init__(self, app: App):
         self.app = app
         self.page = Page(self.app)
 

@@ -48,6 +48,8 @@ def sort(thing: List[str]) -> List[str]:
 
 def write(path: Optional[Path], thing: List[str]) -> None:
     assert path is not None
+    if not path.parent.exists():
+        path.parent.mkdir(exist_ok=True)
     with open(path, "w") as f:
         for thingy in thing:
             print(thingy, file=f)
@@ -59,8 +61,6 @@ def read(path: Optional[Path]) -> List[str]:
         with open(path, "r") as f:
             return [command.strip() for command in f]
     except FileNotFoundError:
-        path.parent.mkdir(exist_ok=True)
-        path.touch()
         return [""]
 
 
