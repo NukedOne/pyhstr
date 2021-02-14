@@ -125,9 +125,7 @@ class UserInterface:
                     self._addstr(cmd_idx + 3, 1, padded_cmd, COLORS["white"])
 
                 if cmd_idx == self.app.user_interface.page.selected.value:
-                    self._addstr(
-                        cmd_idx + 3, 1, padded_cmd, COLORS["highlighted-green"]
-                    )
+                    self._addstr(cmd_idx + 3, 1, padded_cmd, COLORS["highlighted-green"])
             except curses.error:
                 pass
 
