@@ -151,7 +151,8 @@ disable=missing-module-docstring,
         import-outside-toplevel,
         no-else-return,
         unsubscriptable-object,
-        invalid-name
+        invalid-name,
+        duplicate-code,
 
 
 # Enable the message, report, category or checker with the given id(s). You can

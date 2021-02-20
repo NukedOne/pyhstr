@@ -143,13 +143,13 @@ class FakeFcntl:
 @pytest.fixture
 def fake_fcntl(monkeypatch):
     fake_f = FakeFcntl()
-    monkeypatch.setattr(utilities, "fcntl", fake_f)
+    monkeypatch.setattr(utilities, "ioctl", fake_f.ioctl)
     return fake_f
 
 
 @pytest.fixture
 def fake_termios(monkeypatch):
-    monkeypatch.setattr(utilities, "termios", FakeTermios())
+    monkeypatch.setattr(utilities, "TIOCSTI", FakeTermios().TIOCSTI)
 
 
 def fake_get_ipython_history():

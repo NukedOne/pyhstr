@@ -91,17 +91,7 @@ class UserInterface:
                 COLORS[color] = curses.color_pair(idx)
 
     def populate_screen(self) -> None:
-        current_page = self.app.user_interface.page.value
-        total_pages = self.total_pages()
-
-        status = PYHSTR_STATUS.format(
-            DISPLAY["view"][self.app.view],
-            DISPLAY["regex_mode"][self.app.regex_mode],
-            DISPLAY["case"][self.app.case_sensitivity],
-            current_page if total_pages > 0 else 0,
-            total_pages,
-        ).ljust(curses.COLS - 1)
-
+        status = self._make_status()
         cmds = self.page.get_commands()
 
         for cmd_idx, cmd in enumerate(cmds):
@@ -132,6 +122,18 @@ class UserInterface:
         self._addstr(1, 1, PYHSTR_LABEL, COLORS["normal"])
         self._addstr(2, 1, status, COLORS["highlighted-white"])
         self._addstr(0, 1, PS1 + self.app.search_string, COLORS["normal"])
+
+    def _make_status(self) -> str:
+        current_page = self.app.user_interface.page.value
+        total_pages = self.total_pages()
+        status = PYHSTR_STATUS.format(
+            DISPLAY["view"][self.app.view],
+            DISPLAY["regex_mode"][self.app.regex_mode],
+            DISPLAY["case"][self.app.case_sensitivity],
+            current_page if total_pages > 0 else 0,
+            total_pages,
+        ).ljust(curses.COLS - 1)
+        return status
 
     def prompt_for_deletion(self, command: str) -> None:
         prompt = f"Do you want to delete all occurences of {command}? y/n"
