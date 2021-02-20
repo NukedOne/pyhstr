@@ -96,6 +96,19 @@ class App:
         except re.error:
             return None
 
+    def delete_from_history(self, command: str) -> None:
+        if SHELL == Shell.STANDARD:
+            self.delete_python_history(command)
+        elif SHELL == Shell.IPYTHON:
+            self.delete_ipython_history(command)
+        elif SHELL == Shell.BPYTHON:
+            self.delete_bpython_history(command)
+        else:
+            pass  # future implementations
+
+        self.delete_from_pyhstr(command)
+        self.to_restore = self.commands.copy()
+
     def delete_python_history(self, command: str) -> None:  # pylint: disable=no-self-use
         readline_history = [
             readline.get_history_item(i + 1)
@@ -118,30 +131,19 @@ class App:
         self.raw_history = [cmd for cmd in self.raw_history if cmd != command]
         write(SHELLS[Shell.BPYTHON]["hist"], self.raw_history)
 
-    def delete_from_history(self, command: str) -> None:
-        if SHELL == Shell.STANDARD:
-            self.delete_python_history(command)
-        elif SHELL == Shell.IPYTHON:
-            self.delete_ipython_history(command)
-        elif SHELL == Shell.BPYTHON:
-            self.delete_bpython_history(command)
-        else:
-            pass  # future implementations
-
+    def delete_from_pyhstr(self, command: str) -> None:
         for view in self.commands.values():
             for cmd in view:
                 if cmd == command:
                     view.remove(cmd)
 
-        self.to_restore = self.commands.copy()
-
     def add_or_rm_fav(self, command: str) -> None:
-        if command not in self.commands[View.FAVORITES]:
-            self.commands[View.FAVORITES].append(command)
+        favorites = self.commands[View.FAVORITES]
+        if command not in favorites:
+            favorites.append(command)
         else:
-            self.commands[View.FAVORITES].remove(command)
-        write(SHELLS[SHELL]["fav"], self.commands[View.FAVORITES])
-
+            favorites.remove(command)
+        write(SHELLS[SHELL]["fav"], favorites)
 
     def toggle_regex_mode(self) -> None:
         self.regex_mode = not self.regex_mode

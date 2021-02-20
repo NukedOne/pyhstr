@@ -30,7 +30,7 @@ class FakeReadline:
         self.history.pop(i)
 
     def write_history_file(self, path):
-        write(path, self.history)
+        write(Path(path), self.history)
 
     def get_current_history_length(self):
         return len(self.history)
