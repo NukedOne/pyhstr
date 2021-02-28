@@ -75,7 +75,7 @@ class App:
         return read(SHELLS[SHELL]["hist"])
 
     def search(self) -> None:
-        self.user_interface.page.selected.value = 0
+        self.user_interface.page.selected = 0
         self.user_interface.page.value = 1
 
         search_regex = self.create_search_regex()

@@ -9,8 +9,8 @@ import pytest
 from pyhstr.application import App
 from pyhstr.user_interface import (
     COLORS,
+    Direction,
     Page,
-    SelectedCmd,
     UserInterface,
 )
 from tests.fixtures import (
@@ -24,20 +24,20 @@ from tests.fixtures import (
 @pytest.mark.parametrize(
     "current_selected, direction, expected_selected, expected_page",
     [
-        [0, 1, 1, 1],
-        [1, 1, 2, 1],
-        [2, 1, 3, 1],
-        [3, 1, 4, 1],
-        [4, 1, 5, 1],
-        [5, 1, 6, 1],
-        [6, 1, 0, 2],
-        [6, -1, 5, 1],
-        [5, -1, 4, 1],
-        [4, -1, 3, 1],
-        [3, -1, 2, 1],
-        [2, -1, 1, 1],
-        [1, -1, 0, 1],
-        [0, -1, 3, 4],
+        [0, Direction.NEXT, 1, 1],
+        [1, Direction.NEXT, 2, 1],
+        [2, Direction.NEXT, 3, 1],
+        [3, Direction.NEXT, 4, 1],
+        [4, Direction.NEXT, 5, 1],
+        [5, Direction.NEXT, 6, 1],
+        [6, Direction.NEXT, 0, 2],
+        [6, Direction.PREVIOUS, 5, 1],
+        [5, Direction.PREVIOUS, 4, 1],
+        [4, Direction.PREVIOUS, 3, 1],
+        [3, Direction.PREVIOUS, 2, 1],
+        [2, Direction.PREVIOUS, 1, 1],
+        [1, Direction.PREVIOUS, 0, 1],
+        [0, Direction.PREVIOUS, 3, 4],
     ],
 )
 def test_selected_move(
@@ -49,26 +49,26 @@ def test_selected_move(
     fake_stdscr,
     fake_standard,
 ):
-    selected = SelectedCmd(Page(App(fake_stdscr)))
-    selected.value = current_selected
-    selected.move(direction)
-    assert selected.value == expected_selected
-    assert selected.page.value == expected_page
+    page = Page(App(fake_stdscr))
+    page.selected = current_selected
+    page.move_selected(direction)
+    assert page.selected == expected_selected
+    assert page.value == expected_page
 
 
 @pytest.mark.all
 @pytest.mark.parametrize(
     "current, direction, expected",
     [
-        [1, 1, 2],
-        [2, 1, 3],
-        [3, 1, 4],
-        [4, 1, 1],
-        [4, -1, 3],
-        [3, -1, 2],
-        [2, -1, 1],
-        [1, -1, 4],
-    ],
+        [1, Direction.NEXT, 2],
+        [2, Direction.NEXT, 3],
+        [3, Direction.NEXT, 4],
+        [4, Direction.NEXT, 1],
+        [4, Direction.PREVIOUS, 3],
+        [3, Direction.PREVIOUS, 2],
+        [2, Direction.PREVIOUS, 1],
+        [1, Direction.PREVIOUS, 4],
+    ]
 )
 def test_page_turn(
     current,
@@ -113,7 +113,7 @@ def test_page_get_commands(fake_curses, fake_stdscr, fake_standard):
 @pytest.mark.all
 def test_page_get_selected(fake_curses, fake_stdscr, fake_standard):
     page = Page(App(fake_stdscr))
-    page.selected.value = 2
+    page.selected = 2
     assert page.get_selected() == '__import__("math").pi'
 
 

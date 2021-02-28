@@ -2,6 +2,7 @@ import curses
 from typing import Any, TYPE_CHECKING
 
 from pyhstr.application import App, View
+from pyhstr.user_interface import Direction
 from pyhstr.utilities import echo
 
 if TYPE_CHECKING:
@@ -11,10 +12,10 @@ else:
 
 
 KEY_BINDINGS = {
-    curses.KEY_UP: -1,
-    curses.KEY_DOWN: 1,
-    curses.KEY_PPAGE: -1,
-    curses.KEY_NPAGE: 1,
+    curses.KEY_UP: Direction.PREVIOUS,
+    curses.KEY_DOWN: Direction.NEXT,
+    curses.KEY_PPAGE: Direction.PREVIOUS,
+    curses.KEY_NPAGE: Direction.NEXT,
 }
 
 CTRL_E = "\x05"
@@ -46,7 +47,7 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
 
         if user_input == CTRL_E:
             app.toggle_regex_mode()
-            app.user_interface.page.selected.value = 0
+            app.user_interface.page.selected = 0
             app.user_interface.populate_screen()
 
         elif user_input == CTRL_F:
@@ -77,14 +78,14 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
 
         elif user_input == CTRL_SLASH:
             app.toggle_view()
-            app.user_interface.page.selected.value = 0
+            app.user_interface.page.selected = 0
             app.user_interface.page.value = 1
             app.stdscr.clear()
             app.user_interface.populate_screen()
 
         elif user_input in {curses.KEY_UP, curses.KEY_DOWN}:
             assert isinstance(user_input, int)
-            app.user_interface.page.selected.move(KEY_BINDINGS[user_input])
+            app.user_interface.page.move_selected(KEY_BINDINGS[user_input])
             app.user_interface.populate_screen()
 
         elif user_input in {curses.KEY_NPAGE, curses.KEY_PPAGE}:
@@ -95,7 +96,7 @@ def main(stdscr: _CursesWindow) -> None:  # pylint: disable=too-many-statements
         elif user_input == curses.KEY_BACKSPACE:
             app.search_string = app.search_string[:-1]
             if not app.search_string:
-                app.user_interface.page.selected.value = 0
+                app.user_interface.page.selected = 0
             app.commands = app.to_restore.copy()
             app.search()
 

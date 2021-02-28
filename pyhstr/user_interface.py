@@ -1,6 +1,7 @@
 import curses
 import shutil
 import sys
+from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -49,6 +50,11 @@ DISPLAY: Dict[str, Dict[Union[View, bool], str]] = {
         False: "off",
     },
 }
+
+
+class Direction(Enum):
+    PREVIOUS = -1
+    NEXT = 1
 
 
 class UserInterface:
@@ -114,7 +120,7 @@ class UserInterface:
                 if cmd in self.app.commands[View.FAVORITES]:
                     self._addstr(cmd_idx + 3, 1, padded_cmd, COLORS["white"])
 
-                if cmd_idx == self.app.user_interface.page.selected.value:
+                if cmd_idx == self.app.user_interface.page.selected:
                     self._addstr(cmd_idx + 3, 1, padded_cmd, COLORS["highlighted-green"])
             except curses.error:
                 pass
@@ -168,11 +174,11 @@ class UserInterface:
 
 class Page:
     def __init__(self, app: "App"):
-        self.value = 1
         self.app = app
-        self.selected = SelectedCmd(self)
+        self.value = 1
+        self.selected = 0
 
-    def turn(self, direction: int) -> None:
+    def turn(self, direction: Direction) -> None:
         """
         Paging starts from 1 but we want it to start at 0,
         because that's how our calculation with modulo works.
@@ -200,8 +206,9 @@ class Page:
 
         ... where -1+1 happens to cancel itself.
         """
+        total_pages = self.app.user_interface.total_pages()
         self.app.stdscr.clear()
-        self.value = ((self.value - 1 + direction) % self.app.user_interface.total_pages()) + 1
+        self.value = ((self.value - 1 + direction.value) % total_pages) + 1
 
 
     def get_size(self) -> int:
@@ -216,31 +223,25 @@ class Page:
             (self.value - 1) * (y - 3) : self.value * (y - 3)
         ]
 
-    def get_selected(self) -> str:
-        return self.get_commands()[self.selected.value]
-
-    def retain_selection(self) -> None:
-        page_size = self.get_size() - 1
-        if self.selected.value == page_size:
-            self.selected.move(-1)
-
-
-class SelectedCmd:  # pylint: disable=too-few-public-methods
-    def __init__(self, page: Page):
-        self.value = 0
-        self.page = page
-
-    def move(self, direction: int) -> None:
-        page_size = self.page.get_size()
-        self.value += direction
+    def move_selected(self, direction: Direction) -> None:
+        page_size = self.get_size()
+        self.selected += direction.value
 
         try:
-            self.value %= page_size
+            self.selected %= page_size
         except ZeroDivisionError:  # pragma: no cover
             return None
 
-        if direction == 1 and self.value == 0:
-            self.page.turn(1)
-        elif direction == -1 and self.value == (page_size - 1):
-            self.page.turn(-1)
-            self.value = self.page.get_size() - 1
+        if direction == Direction.NEXT and self.selected == 0:
+            self.turn(Direction.NEXT)
+        elif direction == Direction.PREVIOUS and self.selected == (page_size - 1):
+            self.turn(Direction.PREVIOUS)
+            self.selected = self.get_size() - 1
+
+    def get_selected(self) -> str:
+        return self.get_commands()[self.selected]
+
+    def retain_selection(self) -> None:
+        page_size = self.get_size() - 1
+        if self.selected == page_size:
+            self.move_selected(Direction.PREVIOUS)
