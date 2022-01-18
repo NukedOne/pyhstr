@@ -2,7 +2,7 @@
 name = "pyhstr"
 version = "0.5.2"
 description = "History suggest box for the standard Python shell, IPython, and bpython"
-authors = ["xvm32 <xvm32@users.noreply.github.com>"]
+authors = ["NukedOne <x@nuked.one>"]
 license = "MIT"
 packages = [
     { include = "pyhstr" },
